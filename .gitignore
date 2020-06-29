@@ -4,3 +4,4 @@ app.js*
 node_modules
 *.JPG
 *.jpg
+*.js
