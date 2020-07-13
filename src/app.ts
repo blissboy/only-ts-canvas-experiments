@@ -1,8 +1,7 @@
-import {ExampleSimulation} from "./ExampleSimulation";
-import {ISimulation} from "./framework/types";
-
-const TWO_PI = Math.PI * 2.0;
-const dogsSmell = "dogs";
+import {ImageTraceSimulation} from "./ImageTraceSimulation";
+import {ISimulation, PixelRGBA, RGBAImage} from "./framework/types";
+import {BaseFrameworkError} from "./framework/error/BaseFrameworkError";
+import {getRGBAImageFromImageData} from "./framework/utils";
 
 // Simulation constants
 const particleCount = 2500;
@@ -15,12 +14,9 @@ const colorPalettes: string[][] = [
     ["#e8aeb7", "#b8e1ff", "#a9fff7", "#94fbab", "#82aba1"]
 ];
 
-const maxParticleSize = 3.0;
-
-
-function createDrawCanvas(imageCtx: CanvasRenderingContext2D, width: number, height: number) {
-    const updateFrameRate = 60;
-    const drawFrameRate = 60;
+function createDrawCanvas(image: RGBAImage, width: number, height: number) {
+    const updateFrameRate = 700;
+    const drawFrameRate = 700;
 
     const canvas: HTMLCanvasElement = document.createElement('canvas');
     document.body.appendChild(canvas);
@@ -41,18 +37,20 @@ function createDrawCanvas(imageCtx: CanvasRenderingContext2D, width: number, hei
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    const sim: ISimulation = new ExampleSimulation(width, height, {colorPalettes: colorPalettes, particleCount: 500});
-    const imageData = imageCtx.getImageData(0, 0, width, height);
+    const sim: ISimulation = new ImageTraceSimulation(ctx);
+    sim.init({
+            colorPalettes,
+            particleCount: 500,
+            image
+        });
 
-    setInterval(
-        () => {
-            sim.update(imageData);
+    setInterval(() => {
+            sim.update({});
         },
         1000 / updateFrameRate
     );
 
-    setInterval(
-        () => {
+    setInterval(() => {
             sim.draw(ctx);
         },
         1000 / drawFrameRate
@@ -79,15 +77,15 @@ function bootstrapper() {
         //document.body.appendChild(imageCanvas);
         imageCanvas.height = height;
         imageCanvas.width = width;
-        const ctx: CanvasRenderingContext2D | null = imageCanvas.getContext('2d');
-        if (!ctx) {
+        const imageCtx: CanvasRenderingContext2D | null = imageCanvas.getContext('2d');
+        if (!imageCtx) {
             console.error('no canvas');
-            return;
+            throw new BaseFrameworkError("can't create image canvas");
         }
-        ctx.drawImage(image, 0, 0, width, height);
-        createDrawCanvas(ctx, width, height);
+        imageCtx.drawImage(image, 0, 0, width, height);
+        createDrawCanvas(getRGBAImageFromImageData(imageCtx.getImageData(0,0,width,height)), width, height);
     }
-    image.src = 'pic.png';
+    image.src = 'lp_image.png';
 
 }
 

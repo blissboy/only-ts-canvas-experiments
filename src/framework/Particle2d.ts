@@ -1,5 +1,23 @@
-import {clamp, fromPolarToXY, getRandomFloat, getRandomInt, rgbToLuma, validateNotNan} from "./utils";
-import {IParticle2d, ISimulation, ParticleConfig, Point, Velocity2d} from "./types";
+import {
+    clamp,
+    fromPolarToXY,
+    getPixelForLocation,
+    getRandomFloat,
+    getRandomInt,
+    rgbToLuma,
+    validateNotNan
+} from "./utils";
+import {
+    FrameworkError,
+    IParticle2d, isFrameworkError,
+    ISimulation,
+    ParticleConfig,
+    PixelRGBA,
+    Point,
+    RGBAImage,
+    Velocity2d
+} from "./types";
+import {BaseFrameworkError} from "./error/BaseFrameworkError";
 
 const TWO_PI = Math.PI * 2;
 
@@ -26,7 +44,7 @@ export class Particle2d implements ISimulation, IParticle2d {
     }
 
     createParticle2d(id: number, location: Point, max: Point, options: ParticleConfig) {
-        if (! validateNotNan([id, location.x, location.y, max.x, max.y])) {
+        if (!validateNotNan([id, location.x, location.y, max.x, max.y])) {
             throw new Error(`id: ${id}, location.x:${location.x} location.y:${location.y}, max.x:${max.x} max.y:${max.y} must all be numbers`);
         }
         this.id = id;
@@ -53,20 +71,12 @@ export class Particle2d implements ISimulation, IParticle2d {
     init(config: ParticleConfig) {
 
     }
-    update(imageData: ImageData) {
+    update(imageData: RGBAImage) {
         this.counter++;
-        const lum = this.imageComplementLuna(imageData);
-        if (isNaN(lum)) {
-            console.error(`nan`);
+        const lum: number | FrameworkError = this.imageComplementLuna(imageData);
+        if (isFrameworkError(lum)) {
+            throw new Error(lum.message);
         }
-        if (!imageData) {
-            throw new Error('asdf');
-        }
-        if (isNaN(lum)) {
-            throw new Error('assdf');
-        }
-        //console.log(lum);
-
         const dRadius = getRandomFloat(this.maxParticleSize / 10, -this.maxParticleSize / 10);
         const dSpeed = getRandomFloat(0.01, -0.01);
         const dTheta = getRandomFloat(Math.PI / 8, -Math.PI / 8);
@@ -75,18 +85,8 @@ export class Particle2d implements ISimulation, IParticle2d {
         this.velocity.theta += dTheta;
 
         const deltaVector = fromPolarToXY(this.velocity.theta * lum, this.velocity.theta * lum);
-        if (! deltaVector) {throw new Error('undefined move');}
-        if (isNaN(this.location.x)) {
-            console.error(`ID: ${this.id} Nan ${this.counter}`);
-        }
-        // else {
-        //     console.log(`ID: ${this.id}is a number ${this.counter}`);
-        // }
         this.location.x = clamp(0, this.maxLocation.x, Math.floor(this.location.x + deltaVector.x));
         this.location.y = clamp(0, this.maxLocation.y, Math.floor(this.location.y + deltaVector.y));
-        if (isNaN(this.location.x) || isNaN(this.location.y)) {
-            console.error(`nan`);
-        }
         if (this.location.x >= this.maxLocation.x) {
             this.location.x = this.maxLocation.x;
             this.velocity.theta += Math.PI / 2;
@@ -125,17 +125,20 @@ export class Particle2d implements ISimulation, IParticle2d {
         ctx.fill(circle);
     }
 
-    private imageComplementLuna(imageData: ImageData): number {
+    private imageComplementLuna(image: RGBAImage): number | FrameworkError {
         // get pixel in image we want - RGBA values (4 entries per pixel)
-        const pixelIndexOfImage = 4 * (this.location.x + (this.location.y * imageData.width));
-        if (pixelIndexOfImage < imageData.data.length) {
-            const r = imageData.data[pixelIndexOfImage];
-            const g = imageData.data[pixelIndexOfImage + 1];
-            const b = imageData.data[pixelIndexOfImage + 2];
-            const ret = 1 - (rgbToLuma(r, g, b) / 255.0);
-            return ret;
+        const pixel: PixelRGBA | FrameworkError =  getPixelForLocation(this.location, image);
+        if ( isFrameworkError(pixel) ) {
+            console.log(`ERROR from getPixelFromLocation: ${pixel}`);
+            return pixel;
         } else {
-            return 0;
+            try {
+                return 1 - (rgbToLuma(pixel.color.r, pixel.color.g, pixel.color.b) / 255.0);
+            } catch(e) {
+                console.log(JSON.stringify(e));
+                debugger;
+                return new BaseFrameworkError(e);
+            }
         }
     }
 
