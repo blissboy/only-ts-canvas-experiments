@@ -1,5 +1,5 @@
 import {ImageTraceSimulation} from "./ImageTraceSimulation";
-import {ISimulation, PixelRGBA, RGBAImage} from "./framework/types";
+import {ISimulation, RGBAImage} from "./framework/types";
 import {BaseFrameworkError} from "./framework/error/BaseFrameworkError";
 import {getRGBAImageFromImageData} from "./framework/utils";
 

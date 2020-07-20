@@ -1,5 +1,14 @@
-import {getRandomInt, validateNotNan} from "../utils";
+import {
+    getRandomInt,
+    validateNotNan,
+    limitCoordinateToBoundary,
+    greaterThan,
+    lessThan,
+    getReflection,
+    negXAxis
+} from "../utils";
 import {expect} from 'chai';
+import Victor from "victor";
 
 describe('test validateNotANan', () => {
 
@@ -62,5 +71,24 @@ describe('test validateNotANan', () => {
         expect(!gotMax && gotMin && gotMaxMinus1, `it is very unlikely to not get a min(${gotMin}) and a max minus one(${gotMaxMinus1}) random value. Also should never receive max(${gotMax})`).to.be.true;
     });
 
+
+});
+
+
+describe('test getReflection', () => {
+
+    it('x less than 0 should reflect back', () => {
+        expect(limitCoordinateToBoundary(-4, 0, lessThan)).to.equal(4);
+    });
+    it('x greater than 100 should reflect back', () => {
+        expect(limitCoordinateToBoundary(104, 100, greaterThan)).to.equal(96);
+    });
+    it( '45 degree incoming (moving positive X) should reflect to 45 outgoing off y axis', () => {
+        const incoming: Victor = new Victor(1,-1);
+        const reflection: Victor = getReflection(incoming, negXAxis);
+
+        expect(reflection.x).to.equal(-1);
+        expect(reflection.y).to.equal(-1);
+    });
 
 });

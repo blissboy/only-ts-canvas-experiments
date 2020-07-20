@@ -1,8 +1,16 @@
-import {getRandomInt} from "./framework/utils";
-import {Particle2d} from "./framework/Particle2d";
-import {FrameworkError, IParticle2d, ISimulation, RGBAImage} from "./framework/types";
-import {BaseFrameworkError} from "./framework/error/BaseFrameworkError";
-import PNG from "png-ts";
+import {
+    getImageLookupColorFunction, getNinetyDegreeBounceEdgeDetector,
+    getRandomFloat,
+    getRandomInt, getStaticSizeFunction,
+    throwFrameworkErrorIfReturned,
+    TWO_PI
+} from "./framework/utils";
+import {BaseColoredParticle2d} from "./framework/BaseColoredParticle2d";
+import {
+    ISimulation,
+    RGBAImage,
+} from "./framework/types";
+import Victor from "victor";
 
 export type ExampleSimulationConfig = {
     colorPalettes: string[][]
@@ -14,11 +22,13 @@ export type ExampleSimulationConfig = {
  * uses DOM window, document
  */
 export class ImageTraceSimulation implements ISimulation {
-    particles: Particle2d[] = [];
+    particles: BaseColoredParticle2d[] = [];
     private palette: string[];
     private config: ExampleSimulationConfig;
     private image: RGBAImage;
     private drawContext: CanvasRenderingContext2D;
+
+    private INIT_PARTICLE_VELOCITY: number = 3;
 
     constructor(drawContext: CanvasRenderingContext2D) {
         // @ts-ignore will be done in init
@@ -39,17 +49,25 @@ export class ImageTraceSimulation implements ISimulation {
         this.drawContext.canvas.width = this.image.width;
         this.drawContext.canvas.height = this.image.height;
 
+        const colorLookupFromImage = getImageLookupColorFunction(this.image);
+
         for (let i = 0; i < this.config.particleCount; i++) {
             this.particles.push(
-                new Particle2d(
-                    i,
+                new BaseColoredParticle2d(
                     {x: getRandomInt(this.image.width), y: getRandomInt(this.image.height)},
+                    new Victor(
+                        getRandomFloat(this.INIT_PARTICLE_VELOCITY,-this.INIT_PARTICLE_VELOCITY),
+                        getRandomFloat(this.INIT_PARTICLE_VELOCITY,-this.INIT_PARTICLE_VELOCITY)),
+                    {x: 0, y: 0},
                     {
                         x: this.image.width - 1, // images are 1 based, location is 0 based
                         y: this.image.height - 1
                     },
-                    {palette: this.palette})
-            )
+                    getStaticSizeFunction(3),
+                    getNinetyDegreeBounceEdgeDetector({x:0,y:0}, {x:this.image.width,y:this.image.height}),
+                    throwFrameworkErrorIfReturned(colorLookupFromImage)
+                )
+            );
         }
     }
 
@@ -60,6 +78,7 @@ export class ImageTraceSimulation implements ISimulation {
     backgroundDrawn = false;
 
     draw(ctx: CanvasRenderingContext2D) {
+        ctx.save();
         // draw background
         if (!this.backgroundDrawn) {
             ctx.fillStyle = this.palette[0];//getRandomInt(this.palette.length)];
@@ -68,5 +87,6 @@ export class ImageTraceSimulation implements ISimulation {
         }
         // draw particles
         this.particles.forEach(p => p.draw(ctx));
+        ctx.restore();
     }
 }
