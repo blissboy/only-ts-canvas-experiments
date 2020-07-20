@@ -14,6 +14,7 @@ import {
 } from "./types";
 import {BaseFrameworkError} from "./error/BaseFrameworkError";
 import Victor from "victor";
+var Victor1 = require('victor');
 //import * as fs from "fs";
 //import PNG from "png-ts";
 
@@ -55,10 +56,10 @@ export function getReflection(incoming: Victor, unitNormalOfReflectSurface: Vict
         unitNormalOfReflectSurface.multiplyScalar(incoming.dot(unitNormalOfReflectSurface) * 2)
     );
 }
-export const posXAxis: Victor = new Victor(1,0);
-export const negXAxis: Victor = new Victor(-1,0);
-export const posYAxis: Victor = new Victor(0,1);
-export const negYAxis: Victor = new Victor(0,-1);
+export const posXAxis: Victor = new Victor1(1,0);
+export const negXAxis: Victor = new Victor1(-1,0);
+export const posYAxis: Victor = new Victor1(0,1);
+export const negYAxis: Victor = new Victor1(0,-1);
 export const greaterThan: compareFunction = (first: number, second: number) => {
     return first > second;
 }

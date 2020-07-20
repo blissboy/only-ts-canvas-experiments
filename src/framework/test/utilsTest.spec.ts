@@ -4,11 +4,12 @@ import {
     limitCoordinateToBoundary,
     greaterThan,
     lessThan,
-    getReflection,
-    negXAxis
+    getReflection, negXAxis, posXAxis, posYAxis, negYAxis,
+    //negXAxis
 } from "../utils";
 import {expect} from 'chai';
 import Victor from "victor";
+var Victor1 = require('victor');
 
 describe('test validateNotANan', () => {
 
@@ -84,9 +85,26 @@ describe('test getReflection', () => {
         expect(limitCoordinateToBoundary(104, 100, greaterThan)).to.equal(96);
     });
     it( '45 degree incoming (moving positive X) should reflect to 45 outgoing off y axis', () => {
-        const incoming: Victor = new Victor(1,-1);
+        const incoming: Victor = new Victor1(1,-1);
         const reflection: Victor = getReflection(incoming, negXAxis);
-
+        expect(reflection.x).to.equal(-1);
+        expect(reflection.y).to.equal(-1);
+    });
+    it( '45 degree incoming (moving neg X) should reflect to 45 outgoing off y axis', () => {
+        const incoming: Victor = new Victor1(-1,-1);
+        const reflection: Victor = getReflection(incoming, posXAxis);
+        expect(reflection.x).to.equal(1);
+        expect(reflection.y).to.equal(-1);
+    });
+    it( '45 degree incoming (moving neg Y) should reflect to 45 outgoing off x axis', () => {
+        const incoming: Victor = new Victor1(-1,-1);
+        const reflection: Victor = getReflection(incoming, posYAxis);
+        expect(reflection.x).to.equal(-1);
+        expect(reflection.y).to.equal(1);
+    });
+    it( '45 degree incoming (moving pos Y) should reflect to 45 outgoing off x axis', () => {
+        const incoming: Victor = new Victor1(-1,1);
+        const reflection: Victor = getReflection(incoming, negYAxis);
         expect(reflection.x).to.equal(-1);
         expect(reflection.y).to.equal(-1);
     });
