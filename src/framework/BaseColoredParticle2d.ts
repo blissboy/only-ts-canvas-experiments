@@ -74,6 +74,12 @@ export class BaseColoredParticle2d implements IColoredParticle2d {
 
     update(updateData: any): void {
         //this.location =
+
+        this.location = {
+            x: this.location.x + this.velocity.x,
+            y: this.location.y + this.velocity.y
+        };
+
         [this.location, this.velocity] = this.edgeAvoider(this);
         this.color = this.colorLookup(this);
     }

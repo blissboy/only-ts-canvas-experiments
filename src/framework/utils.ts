@@ -146,14 +146,14 @@ export function getStaticColorFunction(color: ColorRGB | ColorRGBA | ColorCMYK):
 }
 export function getImageLookupColorFunction(image: RGBAImage): ColorLookupFunction | FrameworkError {
     return (particle: IParticle2d) => {
-        const color: PixelRGBA | FrameworkError = getPixelForLocation(particle.location, image, true);
-        if (isFrameworkError(color)) {
-            throw new Error(color.message);
+        const pixel: PixelRGBA | FrameworkError = getPixelForLocation(particle.location, image, true);
+        if (isFrameworkError(pixel)) {
+            throw new Error(pixel.message);
         } else {
-            if ( undefined === color) {
+            if ( undefined === pixel) {
                 debugger;
             }
-            return color.color;
+            return pixel.color;
         }
     }
 }

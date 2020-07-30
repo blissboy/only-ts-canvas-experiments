@@ -28,7 +28,7 @@ export class ImageTraceSimulation implements ISimulation {
     private image: RGBAImage;
     private drawContext: CanvasRenderingContext2D;
 
-    private INIT_PARTICLE_VELOCITY: number = 3;
+    private INIT_PARTICLE_VELOCITY: number = 9;
 
     constructor(drawContext: CanvasRenderingContext2D) {
         // @ts-ignore will be done in init
