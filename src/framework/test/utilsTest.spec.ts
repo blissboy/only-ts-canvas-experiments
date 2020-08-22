@@ -9,6 +9,8 @@ import {
 } from "../utils";
 import {expect} from 'chai';
 import Victor from "victor";
+import {Int, roundToInt} from "../types";
+import exp from "constants";
 var Victor1 = require('victor');
 
 describe('test validateNotANan', () => {
@@ -79,34 +81,80 @@ describe('test validateNotANan', () => {
 describe('test getReflection', () => {
 
     it('x less than 0 should reflect back', () => {
-        expect(limitCoordinateToBoundary(-4, 0, lessThan)).to.equal(4);
+        expect(limitCoordinateToBoundary(-4 as Int, roundToInt(0 as Int), lessThan)).to.equal(4);
     });
     it('x greater than 100 should reflect back', () => {
-        expect(limitCoordinateToBoundary(104, 100, greaterThan)).to.equal(96);
+        expect(limitCoordinateToBoundary(104 as Int, 100 as Int, greaterThan)).to.equal(96);
     });
-    it( '45 degree incoming (moving positive X) should reflect to 45 outgoing off y axis', () => {
-        const incoming: Victor = new Victor1(1,-1);
+
+    /**
+     *    \
+     *     \
+     *      \
+     *      /
+     *     /
+     */
+    it( 'incoming (moving positive X) should reflect outgoing off y axis', () => {
+        const incoming: Victor = new Victor1(6,-4);
         const reflection: Victor = getReflection(incoming, negXAxis);
-        expect(reflection.x).to.equal(-1);
-        expect(reflection.y).to.equal(-1);
+        expect(reflection.x).to.equal(-6);
+        expect(reflection.y).to.equal(-4);
     });
+    /**
+     *     /
+     *    /
+     *    \
+     *     \
+     *      \
+     */
     it( '45 degree incoming (moving neg X) should reflect to 45 outgoing off y axis', () => {
-        const incoming: Victor = new Victor1(-1,-1);
+        const incoming: Victor = new Victor1(-5,-1);
         const reflection: Victor = getReflection(incoming, posXAxis);
-        expect(reflection.x).to.equal(1);
+        expect(reflection.x).to.equal(5);
         expect(reflection.y).to.equal(-1);
     });
+
+    /**
+     *  \     /
+     *   \   /
+     *    \ /
+     *     v
+     */
+
     it( '45 degree incoming (moving neg Y) should reflect to 45 outgoing off x axis', () => {
-        const incoming: Victor = new Victor1(-1,-1);
+        const incoming: Victor = new Victor1(6,-4);
         const reflection: Victor = getReflection(incoming, posYAxis);
-        expect(reflection.x).to.equal(-1);
-        expect(reflection.y).to.equal(1);
+        expect(reflection.x).to.equal(6);
+        expect(reflection.y).to.equal(4);
     });
-    it( '45 degree incoming (moving pos Y) should reflect to 45 outgoing off x axis', () => {
-        const incoming: Victor = new Victor1(-1,1);
+    /**
+     *      ^
+     *     / \
+     *   /    \
+     * /       \
+     */
+    it( 'incoming (moving pos Y) should reflect outgoing off x axis', () => {
+        const incoming: Victor = new Victor1(-6,4);
         const reflection: Victor = getReflection(incoming, negYAxis);
-        expect(reflection.x).to.equal(-1);
-        expect(reflection.y).to.equal(-1);
+        expect(reflection.x).to.equal(-6);
+        expect(reflection.y).to.equal(-4);
     });
+
+    it('test reflect does not affect original values', () => {
+
+        const incoming: Victor = new Victor1(-6,4);
+        const incomingCopy: Victor = incoming.clone();
+
+        const axisCopy: Victor = negYAxis.clone();
+
+        const reflection: Victor = getReflection(incoming, negYAxis);
+        expect(reflection.x).to.equal(-6);
+        expect(reflection.y).to.equal(-4);
+
+        expect(incoming).to.deep.equal(incomingCopy);
+        expect(negYAxis).to.deep.equal(axisCopy);
+
+    });
+
 
 });

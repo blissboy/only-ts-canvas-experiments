@@ -5,20 +5,24 @@ import {
     ColorRGBA,
     compareFunction,
     EdgeAvoidanceFunction,
-    FrameworkError,
-    IParticle2d,
+    FrameworkError, Int,
+    IParticle2d, MovingEntity,
     PixelRGBA,
     Point,
-    RGBAImage,
+    RGBAImage, roundToInt,
     SizeFunction
 } from "./types";
 import {BaseFrameworkError} from "./error/BaseFrameworkError";
 import Victor from "victor";
+import {waitForDebugger} from "inspector";
+import {normalizeSlashes} from "ts-node";
 var Victor1 = require('victor');
 //import * as fs from "fs";
 //import PNG from "png-ts";
 
 export const TWO_PI = Math.PI * 2.0;
+export const INT_0: Int = 0 as Int;
+export const ORIGIN: Point = {x:INT_0,y:INT_0};
 
 // mathy
 export function checkedFromPolarToXY(v: number, theta: number): Point | FrameworkError {
@@ -32,8 +36,8 @@ export function checkedFromPolarToXY(v: number, theta: number): Point | Framewor
 export function fromPolarToXY(v: number, theta: number): Point {
     if (validateNotNan([v, theta])) {
         return {
-            x: v * Math.cos(theta),
-            y: v * Math.sin(theta)
+            x: roundToInt(v * Math.cos(theta)),
+            y: roundToInt(v * Math.sin(theta))
         }
     } else {
         throw new BaseFrameworkError(`something was NaN: v: ${v}, theta:${theta}`);
@@ -51,10 +55,20 @@ export function validateNotNan(numbers: number[]): boolean {
     return !(numbers.some(number => !number === undefined || !(typeof number === 'number') || Number.isNaN(number)));
 }
 export function getReflection(incoming: Victor, unitNormalOfReflectSurface: Victor): Victor {
+    const normal:Victor = unitNormalOfReflectSurface.clone();
+    const incomingReadOnly: Victor = incoming.clone();
     // 𝑟=𝑑−2(𝑑⋅𝑛)𝑛  is reflection equation where r = reflected, d is incoming velocity, n is normal
-    return incoming.subtract(
-        unitNormalOfReflectSurface.multiplyScalar(incoming.dot(unitNormalOfReflectSurface) * 2)
-    );
+    const dot: number = incoming.dot(unitNormalOfReflectSurface);
+    const dotTimesNormal: Victor = unitNormalOfReflectSurface.clone().multiplyScalar(dot);
+    const dotTimesNormalTimes2: Victor = dotTimesNormal.multiplyScalar(2);
+
+    const incomingSubtractDotTimesNormalTimes2: Victor = incoming.clone().subtract(dotTimesNormalTimes2);
+
+    // const oldValue: Victor = incoming.subtract(
+    //     unitNormalOfReflectSurface.multiplyScalar(incoming.dot(unitNormalOfReflectSurface) * 2)
+    // );
+
+    return incomingSubtractDotTimesNormalTimes2;
 }
 export const posXAxis: Victor = new Victor1(1,0);
 export const negXAxis: Victor = new Victor1(-1,0);
@@ -80,9 +94,19 @@ export function safeClamp(min: number, max: number, value: number): number | und
         return clamp(min, max, value);
     }
 }
-export function limitCoordinateToBoundary(coord: number, limit: number, compareFn: compareFunction): number {
+export function limitCoordinateToBoundary(coord: Int, limit: Int, compareFn: compareFunction): Int {
     if (compareFn(coord, limit)) {
-        return 2 * limit - coord;
+        return roundToInt(2 * limit - coord);
+    } else {
+        return coord;
+    }
+}
+
+export function limitCoordinateToRange(coord: Int, minLimit: Int, maxLimit: Int): Int {
+    if (coord > maxLimit) {
+        return maxLimit;
+    } else if (coord < minLimit) {
+        return minLimit;
     } else {
         return coord;
     }
@@ -95,9 +119,9 @@ export function limitCoordinateToBoundary(coord: number, limit: number, compareF
  * @param max
  * @param min
  */
-export function getRandomInt(max: number, min = 0) {
+export function getRandomInt(max: number, min = 0) : Int {
     if (min < max) {
-        return Math.floor(getRandomFloat(max, min));
+        return Math.floor(getRandomFloat(max, min)) as Int;
     } else {
         throw Error("min must be < max");
     }
@@ -123,11 +147,11 @@ export function getRGBAImageFromImageData(imageData: ImageData): RGBAImage {
     let pixelStartIndex: number;
     for (let i: number = 0; i < imageData.data.length / 4; i++) {
         pixelStartIndex = i * 4;
+        // const y: Int = Math.floor(pixelStartIndex / imageData.width) as Int;
+        // const x: Int = (pixelStartIndex % imageData.width) as Int;
+
         pixelData.push({
-            location: {
-                x: pixelStartIndex / imageData.width,
-                y: pixelStartIndex / imageData.height
-            },
+            location: get2dPointFromArrayIndex(i, imageData.width),
             color: new ColorRGBA(imageData.data[pixelStartIndex],
                 imageData.data[pixelStartIndex + 1],
                 imageData.data[pixelStartIndex + 2],
@@ -136,21 +160,29 @@ export function getRGBAImageFromImageData(imageData: ImageData): RGBAImage {
     }
 
     return {
-        width: imageData.width,
-        height: imageData.height,
+        width: roundToInt(imageData.width),
+        height: roundToInt(imageData.height),
         pixels: pixelData
     }
+}
+
+export function get2dPointFromArrayIndex(index: number, width: number) {
+    const y: Int = Math.floor(index / width) as Int;
+    const x: Int = (index % width) as Int;
+    return {x,y};
 }
 export function getStaticColorFunction(color: ColorRGB | ColorRGBA | ColorCMYK): ColorLookupFunction {
     return (particle: IParticle2d) => color;
 }
-export function getImageLookupColorFunction(image: RGBAImage): ColorLookupFunction | FrameworkError {
+export function getImageLookupColorFunction(image: RGBAImage, imageSpread: number = 1): ColorLookupFunction | FrameworkError {
     return (particle: IParticle2d) => {
-        const pixel: PixelRGBA | FrameworkError = getPixelForLocation(particle.location, image, true);
+        const pixel: PixelRGBA | FrameworkError
+            = getPixelForLocation({x: roundToInt(particle.location.x / imageSpread), y: roundToInt(particle.location.y / imageSpread)}, image, false);
         if (isFrameworkError(pixel)) {
             throw new Error(pixel.message);
         } else {
             if ( undefined === pixel) {
+                console.log('pixel is undefined')
                 debugger;
             }
             return pixel.color;
@@ -177,8 +209,15 @@ export function getPixelIndexForLocation(location: Point, image: RGBAImage, allo
 export function getPixelForLocation(location: Point, image: RGBAImage, allowOutOfBounds: boolean = false): PixelRGBA | FrameworkError {
     const pixelLocation = getPixelIndexForLocation(location, image, allowOutOfBounds);
     if (pixelLocation && isFrameworkError(pixelLocation)) {
+        console.log('returning pixel location which is an error')
         return pixelLocation;
     } else {
+        // console.log(`attempt to return pixel location ${pixelLocation} which should be < ${image.pixels.length} `);
+        // console.log(`the pixel is ${image.pixels[pixelLocation]}`);
+        if ( image.pixels.length < pixelLocation) {
+            console.log(`**************Bad location was ${JSON.stringify(location)}`);
+            throw new Error("bad location");
+        }
         return image.pixels[pixelLocation];
     }
 }
@@ -196,7 +235,7 @@ export function throwFrameworkErrorIfReturned<T>(returnVal: T | FrameworkError):
     }
 }
 export function getNinetyDegreeBounceEdgeDetector(min: Point, max: Point): EdgeAvoidanceFunction {
-    return (particle: IParticle2d): [Point, Victor] => {
+    return (particle: MovingEntity): [Point, Victor] => {
         const returnPoint: Point = {
             // do two limits, for min and max
             x: limitCoordinateToBoundary(
@@ -223,11 +262,34 @@ export function getNinetyDegreeBounceEdgeDetector(min: Point, max: Point): EdgeA
             } else if (returnPoint.y < particle.location.y) {
                 newVelocity = getReflection(newVelocity,posYAxis);
             }
+
+            //
+
+            if ( ! sanityCheckPointInBounds(returnPoint, max)) {
+                debugger;
+                throw new Error(`naughty particle ${JSON.stringify(returnPoint)}`);
+            }
+
+            // if ( (newVelocity.x * newVelocity.x > 100) || (newVelocity.y * newVelocity.y > 100)) {
+            //     debugger;
+            //     throw new Error(`naughty velocity particle ${JSON.stringify(newVelocity)}`);
+            // }
+
             return [returnPoint, newVelocity];
         }
 
     }
 }
+
+function sanityCheckPointInBounds(pointToCheck: Point, bounds: Point): boolean {
+    return (
+        (pointToCheck.x >= INT_0 )
+        && (pointToCheck.x <= bounds.x)
+        && (pointToCheck.y >= INT_0 )
+        && (pointToCheck.y <= bounds.y)
+        );
+}
+
 export function NoOpAccelerationFunction(particle: IParticle2d) {
     return particle.velocity;
 }

@@ -58,13 +58,13 @@ export class ColorRGB {
     b: number
 
     constructor(r: number, g: number, b: number) {
-        this.r = r % 255;
-        this.g = g % 255;
-        this.b = b % 255;
+        this.r = r % 256;
+        this.g = g % 256;
+        this.b = b % 256;
     }
 
     toCssColor(): string {
-        return `#${this.r.toString(16)}${this.g.toString(16)}${this.b.toString(16)}AA`;
+        return `#${this.r.toString(16).padStart(2,'0')}${this.g.toString(16).padStart(2,'0')}${this.b.toString(16).padStart(2,'0')}`;
     }
 }
 
@@ -73,9 +73,9 @@ export class ColorRGBA extends ColorRGB {
 
     constructor(r: number, g: number, b: number, a: number) {
         super(r, g, b);
-        this.a = a % 255;
+        this.a = a % 256;
         this.toCssColor = () => {
-            return `#${this.r.toString(16)}${this.g.toString(16)}${this.b.toString(16)}${this.a.toString(16)}`;
+            return `${super.toCssColor()}${this.a.toString(16).padStart(2,'0')}`;
         }
     }
 }
@@ -90,8 +90,8 @@ export interface ColorCMYK {
 
 // image types
 export interface RGBAImage {
-    width: number
-    height: number
+    width: Int
+    height: Int
     pixels: PixelRGBA[]
 }
 
@@ -108,7 +108,7 @@ export interface PixelRGBA extends PixelRGB {
 export type AccelerationFunction = (particle: IParticle2d) => Victor;
 export type SizeFunction = (particle: IParticle2d) => number;
 export type DrawFunction = (particle: IParticle2d) => void;
-export type EdgeAvoidanceFunction = (particle: IParticle2d) => [Point, Victor];
+export type EdgeAvoidanceFunction = (entity: MovingEntity) => [Point, Victor];
 
 export type compareFunction = (first: number, second: number) => boolean;
 
@@ -116,10 +116,13 @@ export type ColorLookupFunction = (particle: IParticle2d) => ColorRGB | ColorRGB
 
 // fundamental types
 export interface Point {
-    x: number
-    y: number
-    z?: number
+    x: Int
+    y: Int
+    z?: Int
 }
+
+export type Int = number & { __int__: void };
+export const roundToInt = (num: number): Int => Math.round(num) as Int;
 
 // frameworky stuff
 export interface FrameworkError {

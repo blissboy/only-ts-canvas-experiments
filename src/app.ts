@@ -4,7 +4,13 @@ import {BaseFrameworkError} from "./framework/error/BaseFrameworkError";
 import {getRGBAImageFromImageData} from "./framework/utils";
 
 // Simulation constants
-const particleCount = 2500;
+const particleCount = 2000;
+const sourceImage = 'IMG_4144.png';
+const updateFrameRate = 200;
+const drawFrameRate = 200;
+const sizeMultiplier = 4;
+
+
 const colorPalettes: string[][] = [
     ["#f3b700", "#faa300", "#e57c04", "#ff6201", "#f63e02"],
     ["#ed6a5a", "#f4f1bb", "#9bc1bc", "#5ca4a9", "#e6ebe0"],
@@ -15,8 +21,8 @@ const colorPalettes: string[][] = [
 ];
 
 function createDrawCanvas(image: RGBAImage, width: number, height: number) {
-    const updateFrameRate = 700;
-    const drawFrameRate = 700;
+
+    console.log(`trying now with width ${width} height ${height}`);
 
     const canvas: HTMLCanvasElement = document.createElement('canvas');
     document.body.appendChild(canvas);
@@ -37,11 +43,13 @@ function createDrawCanvas(image: RGBAImage, width: number, height: number) {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
+    // TODO: not sure why init isn't just part of constructor
     const sim: ISimulation = new ImageTraceSimulation(ctx);
     sim.init({
             colorPalettes,
-            particleCount: 500,
-            image
+            particleCount: particleCount,
+            image,
+            imageSpread: 4
         });
 
     setInterval(() => {
@@ -60,8 +68,6 @@ function createDrawCanvas(image: RGBAImage, width: number, height: number) {
 function bootstrapper() {
 
     console.log("called bootstrapper");
-    let width: number = 800;
-    let height: number = 800;
 
     // create image element to load the jpg
     const image: HTMLImageElement = new window.Image();
@@ -71,23 +77,24 @@ function bootstrapper() {
     }
     image.crossOrigin = 'Anonymous';
     image.onload = (e) => {
-        width = image.width;
-        height = image.height;
+        console.log('loaded image');
+        //const width = image.width;
+        //const height = image.height;
         const imageCanvas = document.createElement('canvas');
         //document.body.appendChild(imageCanvas);
-        imageCanvas.height = height;
-        imageCanvas.width = width;
+        imageCanvas.height = image.height;
+        imageCanvas.width = image.width;
         const imageCtx: CanvasRenderingContext2D | null = imageCanvas.getContext('2d');
         if (!imageCtx) {
             console.error('no canvas');
             throw new BaseFrameworkError("can't create image canvas");
         }
-        imageCtx.drawImage(image, 0, 0, width, height);
-        createDrawCanvas(getRGBAImageFromImageData(imageCtx.getImageData(0,0,width,height)), width, height);
+        imageCtx.drawImage(image, 0, 0, image.width, image.height);
+        createDrawCanvas(getRGBAImageFromImageData(imageCtx.getImageData(0,0,image.width,image.height)), image.width * sizeMultiplier, image.height * sizeMultiplier);
     }
-    image.src = 'lp_image.png';
+    image.src = sourceImage;
 
 }
 
-console.log("calling bootstrapper");
+console.log("calling boobootstrapper");
 bootstrapper();

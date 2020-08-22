@@ -1,13 +1,14 @@
 import {
     getImageLookupColorFunction, getNinetyDegreeBounceEdgeDetector,
     getRandomFloat,
-    getRandomInt, getStaticSizeFunction,
+    getRandomInt, getStaticSizeFunction, INT_0,
     throwFrameworkErrorIfReturned,
-    TWO_PI
+    ORIGIN, get2dPointFromArrayIndex, TWO_PI
 } from "./framework/utils";
 import {BaseColoredParticle2d} from "./framework/BaseColoredParticle2d";
 import {
-    ISimulation,
+    Int,
+    ISimulation, Point,
     RGBAImage,
 } from "./framework/types";
 import Victor from "victor";
@@ -16,6 +17,7 @@ export type ExampleSimulationConfig = {
     colorPalettes: string[][]
     particleCount: number
     image: RGBAImage
+    imageSpread: number
 }
 
 /**
@@ -27,9 +29,13 @@ export class ImageTraceSimulation implements ISimulation {
     private config: ExampleSimulationConfig;
     private image: RGBAImage;
     private drawContext: CanvasRenderingContext2D;
+    private width: number;
+    private height: number;
+
 
     private INIT_PARTICLE_VELOCITY: number = 9;
 
+    // TODO: why isn't init stuff in the constructor?
     constructor(drawContext: CanvasRenderingContext2D) {
         // @ts-ignore will be done in init
         this.palette = undefined;
@@ -37,6 +43,10 @@ export class ImageTraceSimulation implements ISimulation {
         this.config = undefined;
         // @ts-ignore will be done in init
         this.image = undefined;
+        // @ts-ignore will be done in init
+        this.width = undefined;
+        // @ts-ignore will be done in init
+        this.height = undefined;
 
         this.drawContext = drawContext;
     }
@@ -45,26 +55,29 @@ export class ImageTraceSimulation implements ISimulation {
         this.config = config;
         this.palette = config.colorPalettes[getRandomInt(config.colorPalettes.length - 1)];
         this.image = config.image;
+        this.width = this.image.width * ( config.imageSpread || 1);
+        this.height = this.image.height * ( config.imageSpread || 1);
+        this.drawContext.canvas.width = this.width;
+        this.drawContext.canvas.height = this.height;
 
-        this.drawContext.canvas.width = this.image.width;
-        this.drawContext.canvas.height = this.image.height;
-
-        const colorLookupFromImage = getImageLookupColorFunction(this.image);
-
+        const colorLookupFromImage = getImageLookupColorFunction(this.image, this.config.imageSpread);
         for (let i = 0; i < this.config.particleCount; i++) {
             this.particles.push(
                 new BaseColoredParticle2d(
-                    {x: getRandomInt(this.image.width), y: getRandomInt(this.image.height)},
+                    {x: getRandomInt(this.width), y: getRandomInt(this.height)},
                     new Victor(
-                        getRandomFloat(this.INIT_PARTICLE_VELOCITY,-this.INIT_PARTICLE_VELOCITY),
-                        getRandomFloat(this.INIT_PARTICLE_VELOCITY,-this.INIT_PARTICLE_VELOCITY)),
-                    {x: 0, y: 0},
+                        getRandomFloat(this.INIT_PARTICLE_VELOCITY, -this.INIT_PARTICLE_VELOCITY),
+                        getRandomFloat(this.INIT_PARTICLE_VELOCITY, -this.INIT_PARTICLE_VELOCITY)),
+                    ORIGIN,
                     {
-                        x: this.image.width - 1, // images are 1 based, location is 0 based
-                        y: this.image.height - 1
+                        x: (this.width - 1) as Int, // images are 1 based, location is 0 based
+                        y: (this.height - 1) as Int
                     },
-                    getStaticSizeFunction(3),
-                    getNinetyDegreeBounceEdgeDetector({x:0,y:0}, {x:this.image.width,y:this.image.height}),
+                    getStaticSizeFunction(1),
+                    getNinetyDegreeBounceEdgeDetector(ORIGIN, {
+                        x: (this.width - 1) as Int,
+                        y: (this.height - 1) as Int
+                    }),
                     throwFrameworkErrorIfReturned(colorLookupFromImage)
                 )
             );
@@ -82,9 +95,28 @@ export class ImageTraceSimulation implements ISimulation {
         // draw background
         if (!this.backgroundDrawn) {
             ctx.fillStyle = this.palette[0];//getRandomInt(this.palette.length)];
-            ctx.fillRect(0, 0, this.image.width, this.image.height);
+            ctx.fillRect(0 as Int, 0 as Int, this.width, this.height);
             this.backgroundDrawn = true;
         }
+
+        // draw image (debug)
+        // this.image.pixels.forEach((pixel,index) => {
+        //     ctx.save();
+        //     //console.log(`fill = ${pixel.color.toCssColor()}`);
+        //     ctx.fillStyle = pixel.color.toCssColor();
+        //
+        //     //ctx.fillStyle = 'green';
+        //
+        //     //const pixelLocation: Point = get2dPointFromArrayIndex(index, this.image.width);
+        //     let circle: Path2D = new Path2D();
+        //     circle.arc((pixel.location.x * 4), (pixel.location.y * 4), 1, 0, TWO_PI);
+        //     ctx.fill(circle);
+        //     ctx.restore();
+        // })
+
+        // console.log('finished drawing pixels');
+
+
         // draw particles
         this.particles.forEach(p => p.draw(ctx));
         ctx.restore();
