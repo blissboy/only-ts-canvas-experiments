@@ -78,7 +78,10 @@ export class ImageTraceSimulation implements ISimulation {
                         x: (this.width - 1) as Int,
                         y: (this.height - 1) as Int
                     }),
-                    throwFrameworkErrorIfReturned(colorLookupFromImage)
+                    throwFrameworkErrorIfReturned(colorLookupFromImage),
+                    (p) => {
+                        return p.velocity.multiplyScalar(-1).add( new Victor(5 * Math.cos(p.tick),5 * Math.cos(p.tick) ));
+                    }
                 )
             );
         }

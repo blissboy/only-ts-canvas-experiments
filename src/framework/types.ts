@@ -15,8 +15,12 @@ export interface Entity {
     location: Point
 }
 
-export interface MovingEntity extends Entity {
+export interface MovingEntity extends Entity, ExistingEntity {
     velocity: Victor
+}
+
+export interface ExistingEntity {
+    tick: number
 }
 
 export interface ConstrainedMovingEntity extends MovingEntity {

@@ -80,6 +80,10 @@ export class BaseColoredParticle2d implements IColoredParticle2d {
 
     update(updateData: any): void {
         //this.location =
+        const accumulator: Victor = new Victor(1,1);
+        this.velocity = this.accelerators.reduce<Victor>(
+            (accumulator, accelFunction) => accumulator.add(accelFunction(this))
+            , this.velocity);
 
         this.location = {
             x: roundToInt(this.location.x + this.velocity.x),
