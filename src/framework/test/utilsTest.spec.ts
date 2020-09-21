@@ -4,7 +4,7 @@ import {
     limitCoordinateToBoundary,
     greaterThan,
     lessThan,
-    getReflection, negXAxis, posXAxis, posYAxis, negYAxis,
+    getReflection, negXAxis, posXAxis, posYAxis, negYAxis, getPointOnLine, ORIGIN,
     //negXAxis
 } from "../utils";
 import {expect} from 'chai';
@@ -76,7 +76,6 @@ describe('test validateNotANan', () => {
 
 
 });
-
 
 describe('test getReflection', () => {
 
@@ -156,5 +155,13 @@ describe('test getReflection', () => {
 
     });
 
+
+});
+
+describe('test points on line', () => {
+    it('vector travelling to the northeast should work', () => {
+        expect(getPointOnLine(ORIGIN, {x:roundToInt(10),y:roundToInt(10)},.5))
+            .to.deep.equal({x:roundToInt(5),y:roundToInt(5)});
+    });
 
 });

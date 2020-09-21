@@ -19,7 +19,7 @@ export interface MovingEntity extends Entity, ExistingEntity {
     velocity: Victor
 }
 
-export interface ExistingEntity {
+export interface ExistingEntity extends Entity {
     tick: number
 }
 

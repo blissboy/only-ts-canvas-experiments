@@ -2,14 +2,15 @@ import {ImageTraceSimulation} from "./ImageTraceSimulation";
 import {ISimulation, RGBAImage} from "./framework/types";
 import {BaseFrameworkError} from "./framework/error/BaseFrameworkError";
 import {getRGBAImageFromImageData} from "./framework/utils";
+import {ImageExpandoConfig, ImageExpandoSimulation} from "./ImageExpandoSimulation";
 
 // Simulation constants
 const particleCount = 2000;
-const sourceImage = 'IMG_4144.png';
-const updateFrameRate = 200;
-const drawFrameRate = 200;
-const sizeMultiplier = 4;
-
+const sourceImage = 'IMG_4155.png';
+const updateFrameRate = 60;
+const drawFrameRate = 60;
+const sizeMultiplier = 1.4;
+const sprayStep = 1;
 
 const colorPalettes: string[][] = [
     ["#f3b700", "#faa300", "#e57c04", "#ff6201", "#f63e02"],
@@ -43,26 +44,50 @@ function createDrawCanvas(image: RGBAImage, width: number, height: number) {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    // TODO: not sure why init isn't just part of constructor
-    const sim: ISimulation = new ImageTraceSimulation(ctx);
-    sim.init({
-            colorPalettes,
-            particleCount: particleCount,
-            image,
-            imageSpread: 4
-        });
+    // const sim: ISimulation = new ImageTraceSimulation(ctx);
+    // sim.init({
+    //         colorPalettes,
+    //         particleCount: particleCount,
+    //         image,
+    //         imageSpread: 4
+    //     });
 
-    setInterval(() => {
-            sim.update({});
-        },
-        1000 / updateFrameRate
-    );
+    const expandoConfig: ImageExpandoConfig = {
+        background: 'black',
+        image,
+        maintainAspectRatio: true,
+        imageSpread: 3,
+        stepsInCycle: 40,
+        sprayStep: sprayStep,
+        screenMaxSize: {
+            width: 1900,
+            height: 1200
+        }
+    }
+    const sim: ISimulation = new ImageExpandoSimulation(ctx, expandoConfig);
 
-    setInterval(() => {
-            sim.draw(ctx);
-        },
-        1000 / drawFrameRate
-    );
+
+    const updateAndDraw = (timestamp: number) => {
+        sim.update({});
+        sim.draw(ctx);
+
+        requestAnimationFrame(updateAndDraw);
+    }
+
+    requestAnimationFrame(updateAndDraw);
+    // setInterval(() => {
+    //         sim.update({});
+    //         sim.draw(ctx);
+    //
+    //     },
+    //     1000 / updateFrameRate
+    // );
+
+    // setInterval(() => {
+    //         sim.draw(ctx);
+    //     },
+    //     1000 / drawFrameRate
+    // );
 }
 
 function bootstrapper() {

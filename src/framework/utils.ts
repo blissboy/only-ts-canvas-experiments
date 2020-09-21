@@ -16,6 +16,7 @@ import {BaseFrameworkError} from "./error/BaseFrameworkError";
 import Victor from "victor";
 import {waitForDebugger} from "inspector";
 import {normalizeSlashes} from "ts-node";
+import {start} from "repl";
 var Victor1 = require('victor');
 //import * as fs from "fs";
 //import PNG from "png-ts";
@@ -80,6 +81,14 @@ export const greaterThan: compareFunction = (first: number, second: number) => {
 export const lessThan: compareFunction = (first: number, second: number) => {
     return first < second;
 }
+
+export const getPointOnLine: (startPoint: Point, endPoint: Point, percentTowardTarget: number) => Point = (startPoint: Point, endPoint: Point, percentTowardTarget: number) => {
+    return {
+        x : roundToInt(startPoint.x * (1.0 - percentTowardTarget) + endPoint.x * percentTowardTarget),
+        y : roundToInt(startPoint.y * (1.0 - percentTowardTarget) + endPoint.y * percentTowardTarget)
+    };
+}
+
 
 // limits
 export function clamp(min: number, max: number, value: number): number {
