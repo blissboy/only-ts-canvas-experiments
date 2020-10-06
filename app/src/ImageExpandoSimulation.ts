@@ -1,19 +1,14 @@
-import {
-    getImageLookupColorFunction, getNinetyDegreeBounceEdgeDetector,
-    getRandomFloat,
-    getRandomInt, getStaticSizeFunction, INT_0,
-    throwFrameworkErrorIfReturned,
-    ORIGIN, get2dPointFromArrayIndex, TWO_PI, getPointOnLine
-} from "./framework/utils";
-import {BaseColoredParticle2d} from "./framework/BaseColoredParticle2d";
-import {
-    ExistingEntity,
-    Int,
-    ISimulation, Point,
-    RGBAImage, roundToInt,
-} from "./framework/types";
 import Victor from "victor";
-import {ImageBackedParticle, LocationFunction} from "./framework/ImageBackedParticle";
+import {
+    ImageBackedParticle,
+    ISimulation,
+    Point,
+    RGBAImage,
+    getPointOnLine,
+    ExistingEntity,
+    roundToInt,
+    LocationFunction
+} from "canvas-framework/dist";
 
 export type ImageExpandoConfig = {
     background: string
@@ -50,16 +45,16 @@ export class ImageExpandoSimulation implements ISimulation {
         this.drawContext = drawContext;
         this.config = config;
         //this.image = config.image;
-        
+
         // figure out what size we can fit in the canvas passed
-        
+
         this.screenWidth = this.drawContext.canvas.width;
         this.screenHeight = this.drawContext.canvas.height;
 
         let widthMultLocal: number = this.screenWidth / config.image.width;
         let heightMultLocal: number = this.screenHeight / config.image.height;
 
-        if ( config.maintainAspectRatio) {
+        if (config.maintainAspectRatio) {
             widthMultLocal = widthMultLocal < heightMultLocal ? widthMultLocal : heightMultLocal;
             heightMultLocal = widthMultLocal;
         }
@@ -70,12 +65,14 @@ export class ImageExpandoSimulation implements ISimulation {
         // point A is the top left of the image when it zooms back to 1:1 scale
         this.pointA = {
             x: roundToInt((this.screenWidth - this.config.image.width) / 2),
-            y: roundToInt((this.screenHeight - this.config.image.height) / 2)};
+            y: roundToInt((this.screenHeight - this.config.image.height) / 2)
+        };
         this.pointB = {
             x: roundToInt(this.pointA.x + this.config.image.width),
-            y: roundToInt(this.pointA.y + this.config.image.height)};
+            y: roundToInt(this.pointA.y + this.config.image.height)
+        };
         const screenCenter: Point = {
-            x: roundToInt(this.screenWidth  / 2),
+            x: roundToInt(this.screenWidth / 2),
             y: roundToInt(this.screenHeight / 2)
         }
         const imageCenter: Point = {
@@ -103,14 +100,13 @@ export class ImageExpandoSimulation implements ISimulation {
     }
 
     // @ts-ignore we will be fine w/o those functions
-    private createParticleMoveFunction : (target: Point) => LocationFunction
+    private createParticleMoveFunction: (target: Point) => LocationFunction
         = (target) => {
         return (p: ImageBackedParticle) => {
             const step = p.tick % this.config.stepsInCycle;
             return getPointOnLine(p.homeLocation, target, step / this.config.stepsInCycle);
         }
     };
-
 
 
     private particleMoveFunction: LocationFunction = (p: ExistingEntity) => {
@@ -123,25 +119,27 @@ export class ImageExpandoSimulation implements ISimulation {
     }
 
 
-    async init(config: ImageExpandoConfig) {/* all done in constructor*/}
+    async init(config: ImageExpandoConfig) {/* all done in constructor*/
+    }
 
     private sprayFactor: number = 1;
     private expanding: boolean = true;
+
     update() {
         this.tick++;
         console.log(`${new Date().toLocaleTimeString()} started tick:\n\ttick: ${this.tick}\n\tsprayFactor: ${this.sprayFactor}`);
-        if ( this.tick % this.config.stepsInCycle === 0) {
+        if (this.tick % this.config.stepsInCycle === 0) {
             this.expanding = !this.expanding;
             //this.sprayFactor = 7;
         } else {
-            if ( this.expanding) {
+            if (this.expanding) {
                 this.sprayFactor += this.config.sprayStep;
             } else {
                 this.sprayFactor -= this.config.sprayStep;
             }
         }
         this.particles.forEach((p, index) => {
-            if (index % this.sprayFactor === 0)  {
+            if (index % this.sprayFactor === 0) {
                 p.update(this.tick);
             }
         });
@@ -152,13 +150,13 @@ export class ImageExpandoSimulation implements ISimulation {
         ctx.save();
         // draw background
 //        if (!this.backgroundDrawn) {
-            //ctx.fillStyle = this.config.background;
-            //ctx.fillRect(0 as Int, 0 as Int, this.screenWidth, this.screenHeight);
-            ctx.clearRect(0,0,this.screenWidth, this.screenHeight);
+        //ctx.fillStyle = this.config.background;
+        //ctx.fillRect(0 as Int, 0 as Int, this.screenWidth, this.screenHeight);
+        ctx.clearRect(0, 0, this.screenWidth, this.screenHeight);
         //     this.backgroundDrawn = true;
         // }
         this.particles.forEach((p, index) => {
-            if (index % this.sprayFactor < 2)  {
+            if (index % this.sprayFactor < 2) {
                 p.draw(ctx);
             }
         });

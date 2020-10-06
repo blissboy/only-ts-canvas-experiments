@@ -1,8 +1,6 @@
 import {ImageTraceSimulation} from "./ImageTraceSimulation";
-import {ISimulation, RGBAImage} from "./framework/types";
-import {BaseFrameworkError} from "./framework/error/BaseFrameworkError";
-import {getRGBAImageFromImageData} from "./framework/utils";
 import {ImageExpandoConfig, ImageExpandoSimulation} from "./ImageExpandoSimulation";
+import {BaseFrameworkError, getRGBAImageFromImageData, ISimulation, RGBAImage} from "canvas-framework/dist";
 
 // Simulation constants
 const particleCount = 2000;

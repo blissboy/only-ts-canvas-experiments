@@ -1,17 +1,11 @@
-import {
-    getImageLookupColorFunction, getNinetyDegreeBounceEdgeDetector,
-    getRandomFloat,
-    getRandomInt, getStaticSizeFunction, INT_0,
-    throwFrameworkErrorIfReturned,
-    ORIGIN, get2dPointFromArrayIndex, TWO_PI
-} from "./framework/utils";
-import {BaseColoredParticle2d} from "./framework/BaseColoredParticle2d";
-import {
-    Int,
-    ISimulation, Point,
-    RGBAImage,
-} from "./framework/types";
 import Victor from "victor";
+import {
+    getImageLookupColorFunction,
+    getNinetyDegreeBounceEdgeDetector,
+    getRandomFloat, getRandomInt,
+    getStaticSizeFunction,
+    ORIGIN, throwFrameworkErrorIfReturned, BaseColoredParticle2d, Int, ISimulation, RGBAImage
+} from "canvas-framework/dist";
 
 export type ExampleSimulationConfig = {
     colorPalettes: string[][]
@@ -55,8 +49,8 @@ export class ImageTraceSimulation implements ISimulation {
         this.config = config;
         this.palette = config.colorPalettes[getRandomInt(config.colorPalettes.length - 1)];
         this.image = config.image;
-        this.width = this.image.width * ( config.imageSpread || 1);
-        this.height = this.image.height * ( config.imageSpread || 1);
+        this.width = this.image.width * (config.imageSpread || 1);
+        this.height = this.image.height * (config.imageSpread || 1);
         this.drawContext.canvas.width = this.width;
         this.drawContext.canvas.height = this.height;
 
@@ -80,7 +74,7 @@ export class ImageTraceSimulation implements ISimulation {
                     }),
                     throwFrameworkErrorIfReturned(colorLookupFromImage),
                     (p) => {
-                        return p.velocity.multiplyScalar(-1).add( new Victor(5 * Math.cos(p.tick),5 * Math.cos(p.tick) ));
+                        return p.velocity.multiplyScalar(-1).add(new Victor(5 * Math.cos(p.tick), 5 * Math.cos(p.tick)));
                     }
                 )
             );
