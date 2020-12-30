@@ -152,7 +152,7 @@ export class ImageExpandoSimulation implements ISimulation {
 //        if (!this.backgroundDrawn) {
         //ctx.fillStyle = this.config.background;
         //ctx.fillRect(0 as Int, 0 as Int, this.screenWidth, this.screenHeight);
-        ctx.clearRect(0, 0, this.screenWidth, this.screenHeight);
+        //ctx.clearRect(0, 0, this.screenWidth, this.screenHeight);
         //     this.backgroundDrawn = true;
         // }
         this.particles.forEach((p, index) => {

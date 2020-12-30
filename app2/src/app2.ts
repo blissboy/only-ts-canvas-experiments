@@ -1,5 +1,4 @@
-import {ImageTraceSimulation} from "./ImageTraceSimulation";
-import {ImageExpandoConfig, ImageExpandoSimulation} from "./ImageExpandoSimulation";
+import {ImageExpandoConfig, WiggleWackerSim} from "./WiggleWackerSim";
 import {BaseFrameworkError, getRGBAImageFromImageData, ISimulation, RGBAImage} from "canvas-framework/dist";
 
 // Simulation constants
@@ -21,7 +20,7 @@ const colorPalettes: string[][] = [
 
 function createDrawCanvas(image: RGBAImage, width: number, height: number) {
 
-    console.log(`trying now with width ${width} height ${height}`);
+    console.log(`this should only happen once. width ${width} height ${height}`);
 
     const canvas: HTMLCanvasElement = document.createElement('canvas');
     document.body.appendChild(canvas);
@@ -42,14 +41,6 @@ function createDrawCanvas(image: RGBAImage, width: number, height: number) {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    // const sim: ISimulation = new ImageTraceSimulation(ctx);
-    // sim.init({
-    //         colorPalettes,
-    //         particleCount: particleCount,
-    //         image,
-    //         imageSpread: 4
-    //     });
-
     const expandoConfig: ImageExpandoConfig = {
         background: 'black',
         image,
@@ -62,7 +53,7 @@ function createDrawCanvas(image: RGBAImage, width: number, height: number) {
             height: 1200
         }
     }
-    const sim: ISimulation = new ImageExpandoSimulation(ctx, expandoConfig);
+    const sim: ISimulation = new WiggleWackerSim(ctx, expandoConfig);
 
 
     const updateAndDraw = (timestamp: number) => {
@@ -73,19 +64,6 @@ function createDrawCanvas(image: RGBAImage, width: number, height: number) {
     }
 
     requestAnimationFrame(updateAndDraw);
-    // setInterval(() => {
-    //         sim.update({});
-    //         sim.draw(ctx);
-    //
-    //     },
-    //     1000 / updateFrameRate
-    // );
-
-    // setInterval(() => {
-    //         sim.draw(ctx);
-    //     },
-    //     1000 / drawFrameRate
-    // );
 }
 
 function bootstrapper() {
