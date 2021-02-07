@@ -1,0 +1,20 @@
+@startuml
+
+(*)  --> "load index.html"
+--> loads app-spikytree.ts
+--> app2.bootstrapper
+--> bootstrapper creates HTML\nimage, and sets source
+--> when source loaded\ninvoke image.load
+--> create image canvas
+--> draw image to context
+--> call createDrawCanvas
+--> create drawing canvas
+--> attach drawing canvas to doc body
+--> create WiggleWackerSim
+--> create updateAndDraw\n function which will call \nWWSim update\nWWSim draw\nrequestAnimationFrame
+--> call requestAnimationFrame
+--> "requestAnimationFrame calls updateAndDraw" as raf
+--> updateAndDraw calls requestAnimationFrame
+--> raf
+
+@enduml
