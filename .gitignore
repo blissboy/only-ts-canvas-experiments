@@ -1,5 +1,5 @@
 .idea
-dist
+dist/
 app.js*
 node_modules
 *.JPG
@@ -8,4 +8,3 @@ node_modules
 .DS_Store
 attic
 # remove this once we move build to a build dir
-framework

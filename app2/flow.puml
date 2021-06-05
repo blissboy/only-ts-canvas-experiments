@@ -1,0 +1,19 @@
+@startuml
+participant "index.html" as index
+participant "app2.ts" as app2
+index -> app2: run
+app2 -> app2_bootstrapper: run
+app2_bootstrapper->htmlImage: create, set source
+opt async
+participant document as doc
+participant imgCanvas as img
+    htmlImage->doc: onload, create imageCanvas
+    img->img: draw image to context
+    opt in createDrawCanvas method
+        htmlImage->drawCanvas: create drawcanvas
+
+    end
+
+end
+
+@enduml
