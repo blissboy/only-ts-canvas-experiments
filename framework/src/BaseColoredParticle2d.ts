@@ -4,7 +4,7 @@ import {
     EdgeAvoidanceFunction,
     IColoredParticle2d,
     IParticle2d,
-    Point, roundToInt,
+    IntPoint, roundToInt,
     SizeFunction
 } from "./types";
 import Victor from "victor";
@@ -16,25 +16,25 @@ const particleSize: number = 9;
 
 export class BaseColoredParticle2d implements IColoredParticle2d {
 
-    location: Point;
+    location: IntPoint;
     velocity: Victor;
     tick: number = 0;
     tickCycle: number = 120;
 
     private accelerators: AccelerationFunction[] = [];
 
-    maxLocation: Point;
-    minLocation: Point;
+    maxLocation: IntPoint;
+    minLocation: IntPoint;
     private edgeAvoider: EdgeAvoidanceFunction;
     private colorLookup: ColorLookupFunction;
     private color: ColorRGB | ColorRGBA | ColorCMYK ;
     private sizeFn: SizeFunction;
 
     constructor(
-        location: Point,
+        location: IntPoint,
         velocity: Victor,
-        minLocation: Point,
-        maxLocation: Point,
+        minLocation: IntPoint,
+        maxLocation: IntPoint,
         sizeFn: SizeFunction,
         edgeAvoidanceFn: EdgeAvoidanceFunction = getNinetyDegreeBounceEdgeDetector(minLocation, maxLocation),
         colorLookupFn: ColorLookupFunction,

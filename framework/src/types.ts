@@ -15,7 +15,7 @@ export interface ISimulation {
 
 // types used by "app"
 export interface Entity {
-    location: Point
+    location: IntPoint
 }
 
 export interface MovingEntity extends Entity, ExistingEntity {
@@ -30,11 +30,11 @@ export interface ConstrainedMovingEntity extends MovingEntity {
     /**
      * the min location limit for this entity. "the top left corner". Will often be (0,0)
      */
-    minLocation: Point
+    minLocation: IntPoint
     /**
      * the max location limit for this entity. "the bottom right corner"
      */
-    maxLocation: Point
+    maxLocation: IntPoint
 }
 
 export interface Drawable {
@@ -66,7 +66,7 @@ export interface RGBAImage {
 }
 
 export interface PixelRGB {
-    location: Point
+    location: IntPoint
     color: ColorRGB
 }
 
@@ -78,14 +78,14 @@ export interface PixelRGBA extends PixelRGB {
 export type AccelerationFunction = (particle: IParticle2d) => Victor;
 export type SizeFunction = (particle: IParticle2d) => number;
 export type DrawFunction = (particle: IParticle2d) => void;
-export type EdgeAvoidanceFunction = (entity: MovingEntity) => [Point, Victor];
+export type EdgeAvoidanceFunction = (entity: MovingEntity) => [IntPoint, Victor];
 
 export type compareFunction = (first: number, second: number) => boolean;
 
 export type ColorLookupFunction = (particle: IParticle2d) => ColorRGB | ColorRGBA | ColorCMYK;
 
 // fundamental types
-export interface Point {
+export interface IntPoint {
     x: Int
     y: Int
     z?: Int

@@ -1,15 +1,13 @@
 import {getNinetyDegreeBounceEdgeDetector, ORIGIN,} from "../utils";
 import {expect} from 'chai';
-import {EdgeAvoidanceFunction, Int, MovingEntity, Point} from "../types";
-import {getColorRGB, getColorRGBA, getColorRGBAFromNumber, getColorRGBFromNumber} from "../color/colorFactory";
-import {ColorRGB, ColorRGBA} from "../color/types";
+import {EdgeAvoidanceFunction, Int, IntPoint, MovingEntity} from "../types";
 
 var Victor1 = require('victor');
 
 describe('test 90 edge detector', () => {
 
-    const minPoint: Point = ORIGIN;
-    const maxPoint: Point = {x: 100 as Int, y: 72 as Int};
+    const minPoint: IntPoint = ORIGIN;
+    const maxPoint: IntPoint = {x: 100 as Int, y: 72 as Int};
     const edgeDetector: EdgeAvoidanceFunction = getNinetyDegreeBounceEdgeDetector(minPoint, maxPoint);
 
     it('no edge cross should carry on', () => {

@@ -28,7 +28,6 @@ function createDrawCanvas(width: number, height: number) {
         return;
     }
 
-
     canvas.width = width;
     canvas.height = height;
 

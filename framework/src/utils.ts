@@ -5,29 +5,23 @@ import {
     FrameworkError, Int,
     IParticle2d, MovingEntity,
     PixelRGBA,
-    Point,
+    IntPoint,
     RGBAImage, roundToInt,
     SizeFunction
 } from "./types";
 import {BaseFrameworkError} from "./error/BaseFrameworkError";
 import Victor from "victor";
-import {waitForDebugger} from "inspector";
-import {normalizeSlashes} from "ts-node";
-import {start} from "repl";
-import * as dat from 'dat.gui';
-import {GUIParams} from "dat.gui";
 import {ColorCMYK, ColorRGB, ColorRGBA, getColorRGBA} from "./color/types";
 
 var Victor1 = require('victor');
-//import * as fs from "fs";
-//import PNG from "png-ts";
 
 export const TWO_PI = Math.PI * 2.0;
 export const INT_0: Int = 0 as Int;
-export const ORIGIN: Point = {x: INT_0, y: INT_0};
+export const ORIGIN: IntPoint = {x: INT_0, y: INT_0};
 
 // mathy
-export function checkedFromPolarToXY(v: number, theta: number): Point | FrameworkError {
+
+export function checkedFromPolarToXY(v: number, theta: number): IntPoint | FrameworkError {
     try {
         const result = fromPolarToXY(v, theta);
         return result;
@@ -36,7 +30,7 @@ export function checkedFromPolarToXY(v: number, theta: number): Point | Framewor
     }
 }
 
-export function fromPolarToXY(v: number, theta: number): Point {
+export function fromPolarToXY(v: number, theta: number): IntPoint {
     if (validateNotNan([v, theta])) {
         return {
             x: roundToInt(v * Math.cos(theta)),
@@ -87,7 +81,7 @@ export const lessThan: compareFunction = (first: number, second: number) => {
     return first < second;
 }
 
-export const getPointOnLine: (startPoint: Point, endPoint: Point, percentTowardTarget: number) => Point = (startPoint: Point, endPoint: Point, percentTowardTarget: number) => {
+export const getPointOnLine: (startPoint: IntPoint, endPoint: IntPoint, percentTowardTarget: number) => IntPoint = (startPoint: IntPoint, endPoint: IntPoint, percentTowardTarget: number) => {
     return {
         x: roundToInt(startPoint.x * (1.0 - percentTowardTarget) + endPoint.x * percentTowardTarget),
         y: roundToInt(startPoint.y * (1.0 - percentTowardTarget) + endPoint.y * percentTowardTarget)
@@ -248,7 +242,7 @@ export function getImageLookupColorFunction(image: RGBAImage, imageSpread: numbe
 }
 
 // image
-export function validateLocationInBoundsOfImage(location: Point, image: RGBAImage): boolean {
+export function validateLocationInBoundsOfImage(location: IntPoint, image: RGBAImage): boolean {
 
     //const retval: boolean = (location.x <= image.width) && (location.y <= image.height);
     //console.log(`location: ${JSON.stringify(location)} for image with height=${image.height} + width=${image.width} ${retval ? ' is in ' : 'is out of '} bounds`);
@@ -256,7 +250,7 @@ export function validateLocationInBoundsOfImage(location: Point, image: RGBAImag
     return (location.x < image.width) && (location.y < image.height);
 }
 
-export function getPixelIndexForLocation(location: Point, image: RGBAImage, allowOutOfBounds: boolean = false): number | FrameworkError {
+export function getPixelIndexForLocation(location: IntPoint, image: RGBAImage, allowOutOfBounds: boolean = false): number | FrameworkError {
     if (!allowOutOfBounds) {
         if (!validateLocationInBoundsOfImage(location, image)) {
             return new BaseFrameworkError(`location (${location.x},${location.y}) is out of bounds of an image with width ${image.width}, height ${image.height}`);
@@ -265,7 +259,7 @@ export function getPixelIndexForLocation(location: Point, image: RGBAImage, allo
     return ((location.y) * image.width) + location.x % (image.height * image.width);
 }
 
-export function getPixelForLocation(location: Point, image: RGBAImage, allowOutOfBounds: boolean = false): PixelRGBA | FrameworkError {
+export function getPixelForLocation(location: IntPoint, image: RGBAImage, allowOutOfBounds: boolean = false): PixelRGBA | FrameworkError {
     const pixelLocation = getPixelIndexForLocation(location, image, allowOutOfBounds);
     if (pixelLocation && isFrameworkError(pixelLocation)) {
         console.log('returning pixel location which is an error')
@@ -295,9 +289,9 @@ export function throwFrameworkErrorIfReturned<T>(returnVal: T | FrameworkError):
     }
 }
 
-export function getNinetyDegreeBounceEdgeDetector(min: Point, max: Point): EdgeAvoidanceFunction {
-    return (particle: MovingEntity): [Point, Victor] => {
-        const returnPoint: Point = {
+export function getNinetyDegreeBounceEdgeDetector(min: IntPoint, max: IntPoint): EdgeAvoidanceFunction {
+    return (particle: MovingEntity): [IntPoint, Victor] => {
+        const returnPoint: IntPoint = {
             // do two limits, for min and max
             x: limitCoordinateToBoundary(
                 limitCoordinateToBoundary(particle.location.x, max.x, greaterThan), // max
@@ -342,7 +336,7 @@ export function getNinetyDegreeBounceEdgeDetector(min: Point, max: Point): EdgeA
     }
 }
 
-function sanityCheckPointInBounds(pointToCheck: Point, bounds: Point): boolean {
+function sanityCheckPointInBounds(pointToCheck: IntPoint, bounds: IntPoint): boolean {
     return (
         (pointToCheck.x >= INT_0)
         && (pointToCheck.x <= bounds.x)
@@ -508,71 +502,6 @@ const glUtils = {
         }
 
         return ns;
-    },
-
-    // A simpler API on top of the dat.GUI API, specifically
-    // designed for this book for a simpler codebase
-    //@ts-ignore
-    configureControls(settings, options: GUIParams = {width: 300}) {
-        // Check if a gui instance is passed in or create one by default
-        const gui = new dat.GUI();
-        const state = {};
-
-        //@ts-ignore
-        const isAction = v => typeof v === 'function';
-
-        //@ts-ignore
-        const isFolder = v =>
-            !isAction(v) &&
-            typeof v === 'object' &&
-            (v.value === null || v.value === undefined);
-
-        //@ts-ignore
-        const isColor = v =>
-            (typeof v === 'string' && ~v.indexOf('#')) ||
-            (Array.isArray(v) && v.length >= 3);
-
-        Object.keys(settings).forEach(key => {
-            const settingValue = settings[key];
-
-            if (isAction(settingValue)) {
-                //@ts-ignore
-                state[key] = settingValue;
-                return gui.add(state, key);
-            }
-            if (isFolder(settingValue)) {
-                // If it's a folder, recursively call with folder as root settings element
-                //@ts-ignore
-                return glUtils.configureControls(settingValue, {gui: gui.addFolder(key)});
-            }
-
-            const {
-                value,
-                min,
-                max,
-                step,
-                options,
-                onChange = () => null,
-            } = settingValue;
-
-            // set state
-            //@ts-ignore
-            state[key] = value;
-
-            let controller;
-
-            // There are many other values we can set on top of the dat.GUI
-            // API, but we'll only need a few for our purposes
-            if (options) {
-                controller = gui.add(state, key, options);
-            } else if (isColor(value)) {
-                controller = gui.addColor(state, key)
-            } else {
-                controller = gui.add(state, key, min, max, step)
-            }
-
-            controller.onChange(v => onChange(v, state))
-        });
     },
 
     // Calculate tangets for a given set of vertices

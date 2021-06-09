@@ -1,17 +1,26 @@
 import TreeModel, {Node} from "tree-model";
-import {Point} from "canvas-framework";
+import {ABCTree, Point} from "canvas-framework";
 import {ColorCMYK, ColorRGBA} from "canvas-framework";
+import {DrawableTree, PointTree} from "canvas-framework";
 
-export type SpikyTree = {
+export interface FlowerTree extends ABCTree<Point> {
+    draw: () => void;
+}
+
+
+
+
+export interface SpikyTree<SpikyNode> extends DrawableTree<SpikyNode>, PointTree<SpikyNode> {
     tree: TreeModel,
-    draw: (ctx: CanvasRenderingContext2D, rootPoint: Point) => void
+    drawOld: (ctx: CanvasRenderingContext2D, rootPoint: IntPoint) => void
+    draw: () => void;
 }
 
 export type TreeBlueprint = {
     config: TreeConfig,
     getChildNodes: (treeNode: Node<SpikyNode>, config: RunningTreeConfig) => Node<SpikyNode>[],
     getTrunk: (tree: TreeModel) => Node<SpikyNode>[],
-    drawTree: (ctx: CanvasRenderingContext2D, offset: Point) => void,
+    drawTree: (ctx: CanvasRenderingContext2D, offset: IntPoint) => void,
     generateRunningConfig: (seed: number) => RunningTreeConfig
 }
 
@@ -33,12 +42,12 @@ export type RunningTreeConfig = {
     width: number,
     steps: number,
     getTrunk: (tree: TreeModel) => Node<SpikyNode>[]
-    draw: (drawContext: CanvasRenderingContext2D, root: Point) => void
+    drawOld: (drawContext: CanvasRenderingContext2D, root: IntPoint) => void
 }
 
 export type SpikyNode = {
     step: number,
-    point: Point,
+    point: IntPoint,
     width: number,
     color: ColorRGBA
 }
@@ -48,7 +57,7 @@ export type MinMax = {
     max: number
 }
 
-export const generateTree: (blueprint: TreeBlueprint) => SpikyTree = (blueprint: TreeBlueprint) => {
+export const generateTree: (blueprint: TreeBlueprint) => SpikyTree<SpikyNode> = (blueprint: TreeBlueprint) => {
     const tree: TreeModel = new TreeModel();
     const config: RunningTreeConfig = blueprint.generateRunningConfig(23);
     let nodesToFork: Node<SpikyNode>[] = [blueprint.getTrunk(tree)[1]];  // this is the top of the trunk
@@ -62,7 +71,7 @@ export const generateTree: (blueprint: TreeBlueprint) => SpikyTree = (blueprint:
 
     return {
         tree,
-        draw: blueprint.drawTree
+        drawOld: blueprint.drawTree
     }
 
 }

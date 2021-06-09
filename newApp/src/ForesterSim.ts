@@ -1,4 +1,5 @@
 import {
+    FlowerTree,
     generateTree,
     MinMax,
     RunningTreeConfig,
@@ -14,8 +15,8 @@ import {
     getRandomInt,
     ImageBackedParticle,
     ISimulation,
-    Point,
-    roundToInt
+    IntPoint,
+    roundToInt, createRandomPointTree, randomPoint, ABCTree, Point
 } from "canvas-framework";
 
 
@@ -65,10 +66,12 @@ export type ForesterSimConfig = {
  */
 export class ForesterSim implements ISimulation {
 
-    private trees: SpikyTree[] = [];
+    private trees: FlowerTree[] = [];
     private drawContext: CanvasRenderingContext2D;
     private screenWidth: number;
     private screenHeight: number;
+
+
 
 
     private particles: ImageBackedParticle[] = [];
@@ -105,7 +108,7 @@ export class ForesterSim implements ISimulation {
                 max: 5
             }
         },
-        drawTree(ctx: CanvasRenderingContext2D, offset: Point): void {
+        drawTree(ctx: CanvasRenderingContext2D, offset: IntPoint): void {
         },
         generateRunningConfig(seed: number): RunningTreeConfig {
             return {
@@ -141,16 +144,25 @@ export class ForesterSim implements ISimulation {
         this.config = config;
         this.screenWidth = this.drawContext.canvas.width;
         this.screenHeight = this.drawContext.canvas.height;
-        const screenCenter: Point = {
+        const screenCenter: IntPoint = {
             x: roundToInt(this.screenWidth / 2),
             y: roundToInt(this.screenHeight / 2)
         }
 
         let treeIndex: number = 0;
         while (treeIndex < this.config.numTrees) {
-            this.trees.push(this.getRandomTree());
+            this.trees.push(this.getDrawablePointTree(createRandomPointTree(randomPoint(this.config.width, this.config.height), 7, 3, this.config.height))
+            //this.trees.push(this.getRandomTree());
         }
     }
+
+    private getDrawablePointTree(tree: ABCTree<Point>) {
+        return {
+            tree,
+            draw: () => {}
+        }
+    }
+
 
     init() {
     };

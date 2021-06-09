@@ -4,9 +4,9 @@ import {clamp} from "../utils";
 
 export function getColorRGB(r: number, g: number, b: number): ColorRGB {
     const rgb: RGB = {
-        r: r % 256,
-        g: g % 256,
-        b: b % 256
+        r: integerize(r % 256),
+        g: integerize(g % 256),
+        b: integerize(b % 256)
     }
     return {
         ...rgb,
@@ -16,9 +16,9 @@ export function getColorRGB(r: number, g: number, b: number): ColorRGB {
 
 export function getColorRGBFromNumber(color: number):ColorRGB {
     const rgb: RGB = {
-        r: (color % 0x0F010000) / 0x010000,
-        g: (color % 0x0F0100) / 0x0100,
-        b: (color % 0x0F01),
+        r: integerize((color % 0x1000000) / 0x10000),
+        g: integerize((color % 0x10000) / 0x100),
+        b: integerize((color % 0x100)),
     }
     return {
         ...rgb,
@@ -28,10 +28,10 @@ export function getColorRGBFromNumber(color: number):ColorRGB {
 
 export function getColorRGBA(r: number, g: number, b: number, a: number): ColorRGBA {
     const rgba: RGBA = {
-        r: r % 256,
-        g: g % 256,
-        b: b % 256,
-        a: a % 256,
+        r: integerize(r % 256),
+        g: integerize(g % 256),
+        b: integerize(b % 256),
+        a: integerize(a % 256),
     }
     return {
         ...rgba,
@@ -41,10 +41,10 @@ export function getColorRGBA(r: number, g: number, b: number, a: number): ColorR
 
 export function getColorRGBAFromNumber(color: number): ColorRGBA {
     const rgba: RGBA = {
-        r: (color % 0x0F01000000) / 0x01000000,
-        g: (color % 0x0F010000) / 0x010000,
-        b: (color % 0x0F0100) / 0x0100,
-        a: (color % 0x0F01),
+        r: integerize((color % 0x100000000) / 0x1000000),
+        g: integerize((color %   0x1000000) /   0x10000),
+        b: integerize((color %     0x10000) /     0x100),
+        a: integerize(      (color %       0x100)),
     }
     return {
         ...rgba,
@@ -72,5 +72,9 @@ function getRGBCssColor(rgb: RGB): string {
     return `#${rgb.r.toString(16).padStart(2, '0')}${rgb.g.toString(16).padStart(2, '0')}${rgb.b.toString(16).padStart(2, '0')}`;
 }
 function getRGBACssColor(rgba: RGBA): string {
-    return `#${getRGBCssColor({r: rgba.r,g: rgba.g,b: rgba.b})}${rgba.a.toString(16).padStart(2, '0')}`;
+    return `${getRGBCssColor({r: rgba.r,g: rgba.g,b: rgba.b})}${rgba.a.toString(16).padStart(2, '0')}`;
+}
+
+function integerize(input: number): number {
+    return Math.abs(Math.trunc(input));
 }

@@ -1,18 +1,18 @@
-import {ExistingEntity, Point} from "./types";
+import {ExistingEntity, IntPoint} from "./types";
 import {TWO_PI} from "./utils";
 
-export type LocationFunction = (particle: ExistingEntity) => Point;
+export type LocationFunction = (particle: ExistingEntity) => IntPoint;
 
 export class ImageBackedParticle implements ExistingEntity {
 
-    homeLocation: Point;
+    homeLocation: IntPoint;
     color: string;
     getLocation: LocationFunction;
     tick: number = 0;
-    location: Point;
+    location: IntPoint;
 
     constructor(
-        homeLocation: Point,
+        homeLocation: IntPoint,
         cssColor: string,
         locationFunction: LocationFunction
     ) {
