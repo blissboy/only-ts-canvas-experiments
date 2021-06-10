@@ -32,6 +32,9 @@ function createDrawCanvas(width: number, height: number) {
     canvas.height = height;
 
     const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#FF0000";
+    ctx.fillRect(20, 20, 150, 100);
+
 
     if (!ctx) {
         return;
@@ -44,17 +47,20 @@ function createDrawCanvas(width: number, height: number) {
     colorPalettes[0].forEach(color => console.log(getColorRGBAFromNumber(color)));
 
     const forestSimConfig: ForesterSimConfig = {
-        beginColorPalette: colorPalettes[0].map(color => getColorRGBAFromNumber(color)),
+        beginColorPalette: colorPalettes[4].map(color => getColorRGBAFromNumber(color)),
         endColorPalette: colorPalettes[1].map(color => getColorRGBAFromNumber(color)),
         height,
         width,
-        numTrees: 12
+        numTrees: 1
     }
 
+    console.log('creating ForesterSim');
     const sim: ISimulation = new ForesterSim(ctx, forestSimConfig);
-
+    console.log('created ForesterSim');
 
     const updateAndDraw = (timestamp: number) => {
+        console.log(`Update and draw #${timestamp}`);
+
         sim.update({});
         sim.draw(ctx);
 

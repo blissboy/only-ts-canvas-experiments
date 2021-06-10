@@ -28,7 +28,7 @@
     "canvas-framework": "file:../framework",
     "csstype": "^2.6.11",
     "png-ts": "0.0.3",
-    "tree-model": "^1.0.7",
+    "tree-model": "1.0.7",
     "victor": "^1.1.0"
   }
 }

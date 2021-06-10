@@ -1,56 +1,15 @@
 import {
-    FlowerTree,
-    generateTree,
-    MinMax,
-    RunningTreeConfig,
-    SpikyNode,
-    SpikyTree,
-    TreeBlueprint,
-    TreeConfig
-} from "./TreeFactory";
-import TreeModel, {Node} from "tree-model";
-import {
+    ABCTree, ColorRGB,
     ColorRGBA,
-    getColorRGBA,
-    getRandomInt,
+    createRandomPointTree, DrawableTree,
     ImageBackedParticle,
-    ISimulation,
     IntPoint,
-    roundToInt, createRandomPointTree, randomPoint, ABCTree, Point
+    ISimulation,
+    Point,
+    randomPoint,
+    roundToInt
 } from "canvas-framework";
-
-
-const baseTreeConfig: TreeConfig = {
-    heightRange: {
-        min: 100,
-        max: 800
-    },
-    widthRange: {
-        min: 100,
-        max: 500
-    },
-    numStepsRange: {
-        min: 5,
-        max: 23
-    },
-    trunkPercent: 33,
-    colors: {
-        trunk: getColorRGBA(23, 23, 23, 23),
-        start: getColorRGBA(10, 100, 20, 100),
-        finish: getColorRGBA(90, 190, 80, 100)
-    },
-    numForksAtSplit: {
-        min: 2,
-        max: 5
-    },
-
-}
-
-export type TreeAppConfig = {
-    treeHeights: MinMax,
-    treeWidths: MinMax
-}
-
+import TreeModel, {Node} from "tree-model";
 
 export type ForesterSimConfig = {
     numTrees: number,
@@ -60,19 +19,15 @@ export type ForesterSimConfig = {
     endColorPalette: ColorRGBA[]
 }
 
-
 /**
  * uses DOM window, document
  */
 export class ForesterSim implements ISimulation {
 
-    private trees: FlowerTree[] = [];
+    private trees: DrawableTree<Point>[] = [];
     private drawContext: CanvasRenderingContext2D;
     private screenWidth: number;
     private screenHeight: number;
-
-
-
 
     private particles: ImageBackedParticle[] = [];
     private config: ForesterSimConfig;
@@ -80,66 +35,9 @@ export class ForesterSim implements ISimulation {
 
     private tick: number = 0;
 
-    private spikyTreeBlueprint: TreeBlueprint = {
-        getTrunk: (tree: TreeModel) => {
-            return [];
-        },
-        config: {
-            heightRange: {
-                min: 100,
-                max: 800
-            },
-            widthRange: {
-                min: 100,
-                max: 500
-            },
-            numStepsRange: {
-                min: 5,
-                max: 25
-            },
-            trunkPercent: 33,
-            colors: {
-                trunk: getColorRGBA(23, 23, 23, 23),
-                start: getColorRGBA(19, 9, 100, 100),
-                finish: getColorRGBA(199, 200, 88, 100)
-            },
-            numForksAtSplit: {
-                min: 2,
-                max: 5
-            }
-        },
-        drawTree(ctx: CanvasRenderingContext2D, offset: IntPoint): void {
-        },
-        generateRunningConfig(seed: number): RunningTreeConfig {
-            return {
-                height: getRandomInt(this.config.heightRange.max, this.config.heightRange.min),
-                width: getRandomInt(this.config.widthRange.max, this.config.widthRange.min),
-                steps: getRandomInt(this.config.numStepsRange.max, this.config.numStepsRange.min),
-                getTrunk: this.getTrunk,
-                draw: this.drawTree
-            }
-        },
-        getChildNodes(parentNode: Node<SpikyNode>, runningConfig: RunningTreeConfig): Node<SpikyNode>[] {
-            const newNodes: Node<SpikyNode>[] = [];
-            if (parentNode.model.step <= runningConfig.steps) {
-                const numForks = getRandomInt(this.config.numForksAtSplit.max, this.config.numForksAtSplit.min);
-                let i:number = 0;
-                while (i<numForks) {
-                    newNodes.push(parentNode.addChild(new Node(undefined,{
-                        step: parentNode.model.step + 1,
-                        point: {x:3,y:4},
-                        width: 44,
-                        color: getColorRGBA(12,12,12,12)
-                    })));
-                    i++;
-                }
-            }
-            return newNodes;
-        },
-    }
 
     constructor(drawContext: CanvasRenderingContext2D, config: ForesterSimConfig) {
-
+        console.log( 'setting up Forrester Sim');
         this.drawContext = drawContext;
         this.config = config;
         this.screenWidth = this.drawContext.canvas.width;
@@ -149,32 +47,23 @@ export class ForesterSim implements ISimulation {
             y: roundToInt(this.screenHeight / 2)
         }
 
-        let treeIndex: number = 0;
-        while (treeIndex < this.config.numTrees) {
-            this.trees.push(this.getDrawablePointTree(createRandomPointTree(randomPoint(this.config.width, this.config.height), 7, 3, this.config.height))
-            //this.trees.push(this.getRandomTree());
+        console.log(`will create ${config.numTrees} Flower Trees`);
+        while (this.trees.length < config.numTrees) {
+            const abcTree: ABCTree<Point> = createRandomPointTree(
+                randomPoint(config.width, config.height),
+                7,
+                2,
+                config.width
+            );
+            const flowerTree = new FlowerTree(abcTree, this.config.beginColorPalette);
+            // @ts-ignore - no idea why necessary
+            this.trees.push(flowerTree);
         }
+        console.log(`completed setup of Forrester Sim. Has ${this.trees.length} trees`)
     }
-
-    private getDrawablePointTree(tree: ABCTree<Point>) {
-        return {
-            tree,
-            draw: () => {}
-        }
-    }
-
 
     init() {
     };
-
-    private getRandomTree: () => SpikyTree = () => {
-        return this.buildTreeFromBlueprint(this.spikyTreeBlueprint);
-    }
-
-    private buildTreeFromBlueprint: (blueprint: TreeBlueprint) => SpikyTree = (blueprint: TreeBlueprint) => {
-        return generateTree(blueprint);
-    }
-
 
     update() {
         this.tick++;
@@ -182,8 +71,9 @@ export class ForesterSim implements ISimulation {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        ctx.save()
+        ctx.save();
         this.trees.forEach((tree) => {
+            console.log(`drawing treex`);
             tree.draw(ctx, {x: roundToInt(0), y: roundToInt(0)})
         })
         ctx.restore();
@@ -191,5 +81,52 @@ export class ForesterSim implements ISimulation {
 
     start() {
 
+    }
+}
+
+
+export class FlowerTree implements DrawableTree<Point> {
+    readonly draw: (ctx: CanvasRenderingContext2D, offset: Point) => void;
+    // @ts-ignore
+    readonly tree: TreeModel;
+    readonly root: Node<Point>;
+    readonly palette: ColorRGB[];
+
+    constructor(tree: ABCTree<Point>, palette: ColorRGB[]) {
+        console.log('creating new Flower tree');
+        this.tree = tree.tree as unknown as TreeModel;  // no idea why needed
+        this.root = tree.root;
+        this.palette = palette;
+        this.draw = (ctx: CanvasRenderingContext2D, offset: Point) => {
+            console.log('drawing treee....');
+            ctx.save();
+            const grd = ctx.createLinearGradient(0, 0, 170, 0);
+            grd.addColorStop(0, "blue");
+            grd.addColorStop(1, "red");
+            // first the dots
+            this.root.walk((node) => {
+                ctx.fillStyle = this.palette[Math.floor(Math.random() * palette.length)].cssColor;
+                //ctx.fillStyle = "#FFFFAA";
+                let circle = new Path2D();
+                circle.arc(node.model.x, node.model.y, 4, 0, 2 * Math.PI);
+                ctx.fill(circle);
+                console.log(`drew circle at ${node.model.x},${node.model.y}`);
+                return true;
+            });
+            ctx.beginPath();
+            ctx.moveTo(this.root.model.x, this.root.model.y);
+            ctx.strokeStyle = grd;
+            this.root.walk( (node) => {
+                if ( ! node.isRoot()) {
+                    ctx.moveTo(node.model.x, node.model.y);
+                    ctx.quadraticCurveTo(this.root.model.x, this.root.model.y, node.parent.model.x, node.parent.model.y);
+                }
+                return true;
+            })
+            ctx.stroke();
+            ctx.restore();
+            return;
+        }
+        console.log('created tree');
     }
 }

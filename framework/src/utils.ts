@@ -271,7 +271,7 @@ export function getPixelForLocation(location: IntPoint, image: RGBAImage, allowO
             console.log(`**************Bad location was ${JSON.stringify(location)}`);
             throw new Error("bad location");
         }
-        return image.pixels[pixelLocation];
+        return image.pixels[pixelLocation as number];
     }
 }
 

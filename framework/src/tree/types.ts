@@ -1,23 +1,24 @@
+import {Point} from "../entities/types";
+
 export * from './randomPointTreeFactory';
 
 import TreeModel, {Node} from "tree-model";
-import {IntPoint} from "../types";
 
 export interface ABCTree<T> {
     tree: TreeModel;
+    root: Node<T>;
 }
 
 export interface DrawableTree<T> extends ABCTree<T> {
-    draw: () => void;  // TODO: this will likely change, perhaps to add a drawing context param
+    draw: (ctx: CanvasRenderingContext2D, offset: Point) => void;
 }
 
-export interface PointTree<PointNode> extends NodeGenerator<PointNode> {
-    tree: TreeModel;
+export interface PointTree<Point> extends ABCTree<Point> {
 }
 
-export interface NodeGenerator<T> {
-    generateNodes<T>(tree: TreeModel, baseForNewNodes: Node<T>): Node<T>[];
-}
+// export interface NodeGenerator<T> {
+//     generateNodes<T>(tree: TreeModel, baseForNewNodes: Node<T>): Node<T>[];
+// }
 
 export function utilAddChildrenToNode<T>(tree: TreeModel, node: Node<T>, creator: Factory<T>, numberToAdd: number): Node<T>[] {
     for (let i=0; i < numberToAdd; i++) {
