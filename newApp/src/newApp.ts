@@ -11,7 +11,9 @@ import {
 const width: number = 1200;
 const height: number = 800;
 
-const sourceImage = '../IMG_4144.png';
+const sourceImage = '../pic.png';
+//const sourceImage = '../IMG_1331.jpg';
+
 
 const colorPalettes: number[][] = [
     [0xf3b700, 0xfaa300, 0xe57c04, 0xff6201, 0xf63e02],
@@ -27,7 +29,9 @@ const forestSimConfig: ForesterSimConfig = {
     endColorPalette: colorPalettes[1].map(color => getColorRGBAFromNumber(color)),
     height,
     width,
-    numTrees: 1,
+    numTrees: 5,
+    treeDepth: 7,
+    treeBranches: 2,
     imageElement: 'image'
 }
 
@@ -55,25 +59,6 @@ function createDrawingContext(doc: Document, width: number, height: number): Can
 
     return canvas.getContext("2d");
 }
-// function theRest() {
-//
-//
-//
-//     console.log('creating ForesterSim');
-//     const sim: ISimulation = new ForesterSim(ctx, forestSimConfig);
-//     console.log('created ForesterSim');
-//
-//     const updateAndDraw = (timestamp: number) => {
-//         console.log(`Update and draw #${timestamp}`);
-//
-//         sim.update({});
-//         sim.draw(ctx);
-//
-//         //requestAnimationFrame(updateAndDraw);
-//     }
-//
-//     requestAnimationFrame(updateAndDraw);
-// }
 
 function imageCatcher(imageElement: HTMLImageElement, image: RGBAImage) {
     const ctx: CanvasRenderingContext2D = createDrawingContext(document, width, height);
@@ -87,37 +72,7 @@ function imageCatcher(imageElement: HTMLImageElement, image: RGBAImage) {
 function bootstrapper(width: number, height: number) {
     console.log("called bootstrapper");
 
-    loadImageAndCallFunctionWithThePixelsFromThatImage(sourceImage, document, window, imageCatcher);
-    //
-    // // load an image into a canvas, once it's done loading, that will call createDrawCanvas.
-    // const image: HTMLImageElement = new window.Image();
-    // if (!image) {
-    //     console.error('no image');
-    //     return;
-    // }
-    // image.crossOrigin = 'Anonymous';
-    // image.onload = (e) => {
-    //     console.log('loaded image');
-    //     //const width = image.width;
-    //     //const height = image.height;
-    //     const imageCanvas = document.createElement('canvas');
-    //     //document.body.appendChild(imageCanvas);
-    //     imageCanvas.height = image.height;
-    //     imageCanvas.width = image.width;
-    //     const imageCtx: CanvasRenderingContext2D | null = imageCanvas.getContext('2d');
-    //     if (!imageCtx) {
-    //         console.error('no canvas');
-    //         throw new BaseFrameworkError("can't create image canvas");
-    //     }
-    //     imageCtx.drawImage(image, 0, 0, image.width, image.height);
-    //     createDrawCanvas(getRGBAImageFromImageData(imageCtx.getImageData(0,0,image.width,image.height)), image.width * sizeMultiplier, image.height * sizeMultiplier);
-    // }
-    // image.src = sourceImage;
-    //
-    //
-    //
-    //
-    // createDrawCanvas(width,height);
+    loadImageAndCallFunctionWithThePixelsFromThatImage(sourceImage, height, width, document, window, imageCatcher);
 }
 
 console.log("calling boobootstrapper");

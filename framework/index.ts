@@ -1,3 +1,4 @@
+export * from './src/changers/types';
 export * from './src/color/types';
 export * from './src/entities/types';
 export * from './src/html/types';

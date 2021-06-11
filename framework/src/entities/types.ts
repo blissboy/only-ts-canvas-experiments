@@ -1,3 +1,4 @@
+export * from './dynamicPoints';
 
 export interface Point {
     x: number;
@@ -11,4 +12,8 @@ export const randomPoint = (pointScaleX: number, pointScaleY: number = pointScal
         y: Math.floor(Math.random() * pointScaleY),
         z: Math.floor(Math.random() * pointScaleZ),
     } as Point
+}
+
+export interface DynamicPoint {
+    getPoint: (time: number) => Point;
 }
