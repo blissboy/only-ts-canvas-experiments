@@ -10,7 +10,7 @@ export interface ABCTree<T> {
 }
 
 export interface DrawableTree<T> extends ABCTree<T> {
-    draw: (ctx: CanvasRenderingContext2D, offset: Point) => void;
+    draw: (ctx: CanvasRenderingContext2D, offset: Point, pattern: CanvasPattern) => void;
 }
 
 export interface PointTree<Point> extends ABCTree<Point> {

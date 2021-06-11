@@ -11,7 +11,7 @@ import {
 const width: number = 1200;
 const height: number = 800;
 
-const sourceImage = '../pic.png';
+const sourceImage = '../IMG_4144.png';
 
 const colorPalettes: number[][] = [
     [0xf3b700, 0xfaa300, 0xe57c04, 0xff6201, 0xf63e02],
@@ -27,7 +27,8 @@ const forestSimConfig: ForesterSimConfig = {
     endColorPalette: colorPalettes[1].map(color => getColorRGBAFromNumber(color)),
     height,
     width,
-    numTrees: 1
+    numTrees: 1,
+    imageElement: 'image'
 }
 
 // Simulation constants
@@ -74,12 +75,12 @@ function createDrawingContext(doc: Document, width: number, height: number): Can
 //     requestAnimationFrame(updateAndDraw);
 // }
 
-function imageCatcher(image: RGBAImage) {
+function imageCatcher(imageElement: HTMLImageElement, image: RGBAImage) {
     const ctx: CanvasRenderingContext2D = createDrawingContext(document, width, height);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    const sim: ForesterSim = new ForesterSim(ctx, forestSimConfig);
+    const sim: ForesterSim = new ForesterSim(ctx, imageElement, document, forestSimConfig);
     sim.startSim(requestAnimationFrame);
 }
 

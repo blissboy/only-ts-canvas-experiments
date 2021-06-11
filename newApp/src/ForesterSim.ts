@@ -11,12 +11,14 @@ import {
 } from "canvas-framework";
 import TreeModel, {Node} from "tree-model";
 
+
 export type ForesterSimConfig = {
     numTrees: number,
     height: number,
     width: number,
     beginColorPalette: ColorRGBA[],
-    endColorPalette: ColorRGBA[]
+    endColorPalette: ColorRGBA[],
+    imageElement: string
 }
 
 /**
@@ -32,13 +34,13 @@ export class ForesterSim implements ISimulation {
     private particles: ImageBackedParticle[] = [];
     private config: ForesterSimConfig;
     private backgroundDrawn = false;
-
+    private imagePattern: CanvasPattern;
     private requestAnimationFrame;
 
     private tick: number = 0;
 
 
-    constructor(drawContext: CanvasRenderingContext2D, config: ForesterSimConfig) {
+    constructor(drawContext: CanvasRenderingContext2D, imageElement: HTMLImageElement, doc: Document, config: ForesterSimConfig) {
         console.log('setting up Forrester Sim');
         this.drawContext = drawContext;
         this.config = config;
@@ -48,6 +50,10 @@ export class ForesterSim implements ISimulation {
             x: roundToInt(this.screenWidth / 2),
             y: roundToInt(this.screenHeight / 2)
         }
+
+        //const img: HTMLImageElement = doc.getElementById(config.imageElement) as HTMLImageElement;
+        this.imagePattern = drawContext.createPattern(imageElement, "no-repeat");
+
 
         console.log(`will create ${config.numTrees} Flower Trees`);
         while (this.trees.length < config.numTrees) {
@@ -77,7 +83,7 @@ export class ForesterSim implements ISimulation {
         ctx.save();
         this.trees.forEach((tree) => {
             console.log(`drawing treex`);
-            tree.draw(ctx, {x: roundToInt(0), y: roundToInt(0)})
+            tree.draw(ctx, {x: roundToInt(0), y: roundToInt(0)}, this.imagePattern);
         })
         ctx.restore();
     }
@@ -100,7 +106,7 @@ export class ForesterSim implements ISimulation {
 
 
 export class FlowerTree implements DrawableTree<Point> {
-    readonly draw: (ctx: CanvasRenderingContext2D, offset: Point) => void;
+    readonly draw: (ctx: CanvasRenderingContext2D, offset: Point, pattern: CanvasPattern) => void;
     // @ts-ignore
     readonly tree: TreeModel;
     readonly root: Node<Point>;
@@ -111,15 +117,18 @@ export class FlowerTree implements DrawableTree<Point> {
         this.tree = tree.tree as unknown as TreeModel;  // no idea why needed
         this.root = tree.root;
         this.palette = palette;
-        this.draw = (ctx: CanvasRenderingContext2D, offset: Point) => {
+        this.draw = (ctx: CanvasRenderingContext2D, offset: Point, pattern: CanvasPattern) => {
             console.log('drawing treee....');
             ctx.save();
+
+
             const grd = ctx.createLinearGradient(0, 0, 170, 0);
             grd.addColorStop(0, "blue");
             grd.addColorStop(1, "red");
             // first the dots
             this.root.walk((node) => {
                 ctx.fillStyle = this.palette[Math.floor(Math.random() * palette.length)].cssColor;
+                ctx.fillStyle = pattern;
                 //ctx.fillStyle = "#FFFFAA";
                 let circle = new Path2D();
                 circle.arc(node.model.x, node.model.y, 4, 0, 2 * Math.PI);
@@ -129,7 +138,7 @@ export class FlowerTree implements DrawableTree<Point> {
             });
             ctx.beginPath();
             ctx.moveTo(this.root.model.x, this.root.model.y);
-            ctx.strokeStyle = grd;
+            ctx.strokeStyle = pattern;
             this.root.walk((node) => {
                 if (!node.isRoot()) {
                     ctx.moveTo(node.model.x, node.model.y);

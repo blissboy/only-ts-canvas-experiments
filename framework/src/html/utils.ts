@@ -2,8 +2,9 @@ import {BaseFrameworkError} from "../error/BaseFrameworkError";
 import {getRGBAImageFromImageData} from "../utils";
 import {RGBAImage} from "../types";
 
-export function loadImageAndCallFunctionWithThePixelsFromThatImage(sourceImage: string, doc: Document, win: Window & typeof globalThis, callback: (image: RGBAImage) => any): undefined | BaseFrameworkError {
+export function loadImageAndCallFunctionWithThePixelsFromThatImage(sourceImage: string, doc: Document, win: Window & typeof globalThis, callback: (imageElement: HTMLImageElement, image: RGBAImage) => any): undefined | BaseFrameworkError {
     const image: HTMLImageElement = new win.Image();
+    image.id = 'image';
     if (!image) {
         console.error('no image');
         return new BaseFrameworkError(`no image HTML element`);
@@ -21,7 +22,7 @@ export function loadImageAndCallFunctionWithThePixelsFromThatImage(sourceImage: 
             throw new BaseFrameworkError("can't create image canvas");
         }
         imageCtx.drawImage(image, 0, 0, image.width, image.height);
-        callback(getRGBAImageFromImageData(imageCtx.getImageData(0,0,image.width,image.height)));
+        callback(image, getRGBAImageFromImageData(imageCtx.getImageData(0,0,image.width,image.height)));
     }
     image.src = sourceImage;
 
