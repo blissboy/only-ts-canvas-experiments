@@ -1,7 +1,7 @@
-import {Point} from "../entities/types";
-
 export * from './randomPointTreeFactory';
+export * from './utils';
 
+import {Point} from "../entities/types";
 import TreeModel, {Node} from "tree-model";
 
 export interface ABCTree<T> {
@@ -10,7 +10,7 @@ export interface ABCTree<T> {
 }
 
 export interface DrawableTree<T> extends ABCTree<T> {
-    draw: (ctx: CanvasRenderingContext2D, offset: Point, pattern: CanvasPattern) => void;
+    draw: (ctx: CanvasRenderingContext2D, offset: Point, pattern: CanvasPattern, time?: number) => void;
 }
 
 export interface PointTree<Point> extends ABCTree<Point> {

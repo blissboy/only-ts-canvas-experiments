@@ -8,7 +8,7 @@ export interface ISimulation {
 
     update(updateData: any): void
 
-    draw(ctx: CanvasRenderingContext2D): void
+    draw(ctx: CanvasRenderingContext2D, time: number): void
 
     start(): void  //TODO: could return toggle function to allow turning sim on/off
 }

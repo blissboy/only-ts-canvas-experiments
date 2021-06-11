@@ -8,11 +8,11 @@ import {
 } from "canvas-framework";
 
 
-const width: number = 1200;
-const height: number = 800;
+const width: number = 1440;
+const height: number = 1080;
 
-const sourceImage = '../pic.png';
-//const sourceImage = '../IMG_1331.jpg';
+//const sourceImage = '../pic.png';
+const sourceImage = '../IMG_1331.jpg';
 
 
 const colorPalettes: number[][] = [
@@ -29,10 +29,14 @@ const forestSimConfig: ForesterSimConfig = {
     endColorPalette: colorPalettes[1].map(color => getColorRGBAFromNumber(color)),
     height,
     width,
-    numTrees: 5,
-    treeDepth: 7,
-    treeBranches: 2,
-    imageElement: 'image'
+    numTrees: 1,
+    treeDepth: 3,
+    treeBranches: 7,
+    imageElement: 'image',
+    circleRadius: 333,
+    circlePeriod: 4000,
+    circlePeriodVariance: 300,
+    numberOfFrames: 1
 }
 
 // Simulation constants
