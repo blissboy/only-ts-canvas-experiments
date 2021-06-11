@@ -33,11 +33,13 @@ export class ForesterSim implements ISimulation {
     private config: ForesterSimConfig;
     private backgroundDrawn = false;
 
+    private requestAnimationFrame;
+
     private tick: number = 0;
 
 
     constructor(drawContext: CanvasRenderingContext2D, config: ForesterSimConfig) {
-        console.log( 'setting up Forrester Sim');
+        console.log('setting up Forrester Sim');
         this.drawContext = drawContext;
         this.config = config;
         this.screenWidth = this.drawContext.canvas.width;
@@ -71,6 +73,7 @@ export class ForesterSim implements ISimulation {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
+        console.log('sim draw');
         ctx.save();
         this.trees.forEach((tree) => {
             console.log(`drawing treex`);
@@ -81,6 +84,17 @@ export class ForesterSim implements ISimulation {
 
     start() {
 
+    }
+
+    updateAndDraw(callTime: DOMHighResTimeStamp) {
+        console.log(`starting updateAndDraw at ${callTime}`);
+        this.update();
+        this.draw(this.drawContext);
+    }
+
+    startSim(requestAnimationFrameFunction: (callback: (callTime: DOMHighResTimeStamp) => void) => void) {
+        this.requestAnimationFrame = requestAnimationFrameFunction;
+        requestAnimationFrameFunction(this.updateAndDraw.bind(this));
     }
 }
 
@@ -116,8 +130,8 @@ export class FlowerTree implements DrawableTree<Point> {
             ctx.beginPath();
             ctx.moveTo(this.root.model.x, this.root.model.y);
             ctx.strokeStyle = grd;
-            this.root.walk( (node) => {
-                if ( ! node.isRoot()) {
+            this.root.walk((node) => {
+                if (!node.isRoot()) {
                     ctx.moveTo(node.model.x, node.model.y);
                     ctx.quadraticCurveTo(this.root.model.x, this.root.model.y, node.parent.model.x, node.parent.model.y);
                 }

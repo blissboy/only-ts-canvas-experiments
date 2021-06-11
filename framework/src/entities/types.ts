@@ -7,8 +7,8 @@ export interface Point {
 
 export const randomPoint = (pointScaleX: number, pointScaleY: number = pointScaleX, pointScaleZ: number = pointScaleX) => {
     return {
-        x: Math.random() * pointScaleX,
-        y: Math.random() * pointScaleY,
-        z: Math.random() * pointScaleZ,
+        x: Math.floor(Math.random() * pointScaleX),
+        y: Math.floor(Math.random() * pointScaleY),
+        z: Math.floor(Math.random() * pointScaleZ),
     } as Point
 }

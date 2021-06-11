@@ -1,5 +1,6 @@
 export * from './src/color/types';
 export * from './src/entities/types';
+export * from './src/html/types';
 export * from './src/tree/types';
 export * from './src/types';
 export * from './src/utils';

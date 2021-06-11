@@ -1,12 +1,17 @@
 import {ForesterSim, ForesterSimConfig} from "./ForesterSim";
-import {ColorRGBA, getColorRGBAFromNumber, ISimulation} from "canvas-framework";
+import {
+    BaseFrameworkError,
+    ColorRGBA,
+    getColorRGBAFromNumber,
+    ISimulation,
+    loadImageAndCallFunctionWithThePixelsFromThatImage, RGBAImage
+} from "canvas-framework";
 
-// Simulation constants
-// const sourceImage = '../IMG_4144.png';
-// const updateFrameRate = 60;
-// const drawFrameRate = 60;
-// const sizeMultiplier = 1.4;
-// const sprayStep = 1;
+
+const width: number = 1200;
+const height: number = 800;
+
+const sourceImage = '../pic.png';
 
 const colorPalettes: number[][] = [
     [0xf3b700, 0xfaa300, 0xe57c04, 0xff6201, 0xf63e02],
@@ -17,62 +22,101 @@ const colorPalettes: number[][] = [
     [0xe8aeb7, 0xb8e1ff, 0xa9fff7, 0x94fbab, 0x82aba1]
 ];
 
-function createDrawCanvas(width: number, height: number) {
+const forestSimConfig: ForesterSimConfig = {
+    beginColorPalette: colorPalettes[4].map(color => getColorRGBAFromNumber(color)),
+    endColorPalette: colorPalettes[1].map(color => getColorRGBAFromNumber(color)),
+    height,
+    width,
+    numTrees: 1
+}
 
-    console.log(`this should only happen once. width ${width} height ${height}`);
+// Simulation constants
+// const sourceImage = '../IMG_4144.png';
+// const updateFrameRate = 60;
+// const drawFrameRate = 60;
+// const sizeMultiplier = 1.4;
+// const sprayStep = 1;
 
-    const canvas: HTMLCanvasElement = document.createElement('canvas');
-    document.body.appendChild(canvas);
+
+function createDrawingContext(doc: Document, width: number, height: number): CanvasRenderingContext2D {
+
+    console.log(`Creating drawing context. width ${width} height ${height}`);
+
+    const canvas: HTMLCanvasElement = doc.createElement('canvas');
+    doc.body.appendChild(canvas);
 
     if (!canvas) {
-        return;
+        throw new BaseFrameworkError('could not create canvas');
     }
 
     canvas.width = width;
     canvas.height = height;
 
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#FF0000";
-    ctx.fillRect(20, 20, 150, 100);
+    return canvas.getContext("2d");
+}
+// function theRest() {
+//
+//
+//
+//     console.log('creating ForesterSim');
+//     const sim: ISimulation = new ForesterSim(ctx, forestSimConfig);
+//     console.log('created ForesterSim');
+//
+//     const updateAndDraw = (timestamp: number) => {
+//         console.log(`Update and draw #${timestamp}`);
+//
+//         sim.update({});
+//         sim.draw(ctx);
+//
+//         //requestAnimationFrame(updateAndDraw);
+//     }
+//
+//     requestAnimationFrame(updateAndDraw);
+// }
 
-
-    if (!ctx) {
-        return;
-    }
-
+function imageCatcher(image: RGBAImage) {
+    const ctx: CanvasRenderingContext2D = createDrawingContext(document, width, height);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    console.log(`palette 0 = ${colorPalettes[0]}`);
-    colorPalettes[0].forEach(color => console.log(getColorRGBAFromNumber(color)));
-
-    const forestSimConfig: ForesterSimConfig = {
-        beginColorPalette: colorPalettes[4].map(color => getColorRGBAFromNumber(color)),
-        endColorPalette: colorPalettes[1].map(color => getColorRGBAFromNumber(color)),
-        height,
-        width,
-        numTrees: 1
-    }
-
-    console.log('creating ForesterSim');
-    const sim: ISimulation = new ForesterSim(ctx, forestSimConfig);
-    console.log('created ForesterSim');
-
-    const updateAndDraw = (timestamp: number) => {
-        console.log(`Update and draw #${timestamp}`);
-
-        sim.update({});
-        sim.draw(ctx);
-
-        requestAnimationFrame(updateAndDraw);
-    }
-
-    requestAnimationFrame(updateAndDraw);
+    const sim: ForesterSim = new ForesterSim(ctx, forestSimConfig);
+    sim.startSim(requestAnimationFrame);
 }
 
 function bootstrapper(width: number, height: number) {
     console.log("called bootstrapper");
-    createDrawCanvas(width,height);
+
+    loadImageAndCallFunctionWithThePixelsFromThatImage(sourceImage, document, window, imageCatcher);
+    //
+    // // load an image into a canvas, once it's done loading, that will call createDrawCanvas.
+    // const image: HTMLImageElement = new window.Image();
+    // if (!image) {
+    //     console.error('no image');
+    //     return;
+    // }
+    // image.crossOrigin = 'Anonymous';
+    // image.onload = (e) => {
+    //     console.log('loaded image');
+    //     //const width = image.width;
+    //     //const height = image.height;
+    //     const imageCanvas = document.createElement('canvas');
+    //     //document.body.appendChild(imageCanvas);
+    //     imageCanvas.height = image.height;
+    //     imageCanvas.width = image.width;
+    //     const imageCtx: CanvasRenderingContext2D | null = imageCanvas.getContext('2d');
+    //     if (!imageCtx) {
+    //         console.error('no canvas');
+    //         throw new BaseFrameworkError("can't create image canvas");
+    //     }
+    //     imageCtx.drawImage(image, 0, 0, image.width, image.height);
+    //     createDrawCanvas(getRGBAImageFromImageData(imageCtx.getImageData(0,0,image.width,image.height)), image.width * sizeMultiplier, image.height * sizeMultiplier);
+    // }
+    // image.src = sourceImage;
+    //
+    //
+    //
+    //
+    // createDrawCanvas(width,height);
 }
 
 console.log("calling boobootstrapper");
