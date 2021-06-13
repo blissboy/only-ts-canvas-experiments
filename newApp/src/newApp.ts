@@ -8,12 +8,16 @@ import {
 } from "canvas-framework";
 
 
-const width: number = 1440;
-const height: number = 1080;
+const screenWidth: number = window.outerWidth;
+const screenHeight: number = window.outerHeight;
 
-//const sourceImage = '../pic.png';
-const sourceImage = '../IMG_1331.jpg';
-
+const sourceImage = '../pic.png';
+//const sourceImage = '../IMG_4144.png';
+//const sourceImage = '../app/IMG_4155.png';
+//const sourceImage = '../IMG_0021.jpg';
+// const sourceImage = '../IMG_1331.jpg';
+//const sourceImage = '../IMG_0817.jpg';
+//const sourceImage = '../IMG_0295.jpg';
 
 const colorPalettes: number[][] = [
     [0xf3b700, 0xfaa300, 0xe57c04, 0xff6201, 0xf63e02],
@@ -25,27 +29,24 @@ const colorPalettes: number[][] = [
 ];
 
 const forestSimConfig: ForesterSimConfig = {
-    beginColorPalette: colorPalettes[4].map(color => getColorRGBAFromNumber(color)),
-    endColorPalette: colorPalettes[1].map(color => getColorRGBAFromNumber(color)),
-    height,
-    width,
-    numTrees: 1,
-    treeDepth: 3,
-    treeBranches: 7,
-    imageElement: 'image',
-    circleRadius: 333,
-    circlePeriod: 4000,
-    circlePeriodVariance: 300,
-    numberOfFrames: 1
+    beginColorPalette:      colorPalettes[4].map(color => getColorRGBAFromNumber(color)),
+    endColorPalette:        colorPalettes[1].map(color => getColorRGBAFromNumber(color)),
+    height:                 screenHeight,
+    width:                  screenWidth,
+    numTrees:               13,
+    treeDepth:              12,
+    treeBranches:           2,
+    imageElement:           'image',
+    circleRadius:           12,
+    circleRadiusVariance:   200,
+    circlePeriod:           100000,
+    circlePeriodVariance:   10000,
+    numberOfFrames:         0,
+    background:             '#FFFFFF',
+    clearEveryNFrames:      0,
+    drawsToKeep:            10,
+    treeLifetime:           5,
 }
-
-// Simulation constants
-// const sourceImage = '../IMG_4144.png';
-// const updateFrameRate = 60;
-// const drawFrameRate = 60;
-// const sizeMultiplier = 1.4;
-// const sprayStep = 1;
-
 
 function createDrawingContext(doc: Document, width: number, height: number): CanvasRenderingContext2D {
 
@@ -65,9 +66,13 @@ function createDrawingContext(doc: Document, width: number, height: number): Can
 }
 
 function imageCatcher(imageElement: HTMLImageElement, image: RGBAImage) {
-    const ctx: CanvasRenderingContext2D = createDrawingContext(document, width, height);
+
+    const ctx: CanvasRenderingContext2D = createDrawingContext(document, imageElement.width, imageElement.height);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
+
+    forestSimConfig.height = imageElement.height;
+    forestSimConfig.width = imageElement.width;
 
     const sim: ForesterSim = new ForesterSim(ctx, imageElement, document, forestSimConfig);
     sim.startSim(requestAnimationFrame);
@@ -80,4 +85,4 @@ function bootstrapper(width: number, height: number) {
 }
 
 console.log("calling boobootstrapper");
-bootstrapper(1200, 800);
+bootstrapper(screenWidth, screenHeight);

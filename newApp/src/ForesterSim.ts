@@ -1,7 +1,7 @@
 import {
     ABCTree, ColorRGB,
     ColorRGBA, createCirclingPoint, createDynamicPoint,
-    createRandomPointTree, DrawableTree, DynamicPoint,
+    createRandomPointTree, DrawableTree, DynamicPoint, getSimpleRandomValueFunction,
     ImageBackedParticle,
     IntPoint,
     ISimulation,
@@ -20,12 +20,17 @@ export type ForesterSimConfig = {
     height:                 number,
     width:                  number,
     circleRadius:           number,
+    circleRadiusVariance:   number,
     circlePeriod:           number,
     circlePeriodVariance:   number,
     numberOfFrames:         number,
     beginColorPalette:      ColorRGBA[],
     endColorPalette:        ColorRGBA[],
-    imageElement:           string
+    imageElement:           string,
+    background:             string,
+    clearEveryNFrames:      number,
+    drawsToKeep:            number,
+    treeLifetime:           number,
 }
 
 /**
@@ -58,28 +63,34 @@ export class ForesterSim implements ISimulation {
         this.screenHeight = this.drawContext.canvas.height;
         this.imagePattern = drawContext.createPattern(imageElement, "no-repeat");
         drawContext.save();
-        drawContext.fillStyle = "#000000";
+        drawContext.fillStyle = config.background;
         drawContext.fillRect(0,0,config.width,config.height);
         drawContext.restore();
 
         console.log(`will create ${config.numTrees} Flower Trees`);
         while (this.trees.length < config.numTrees) {
-            const abcTree: ABCTree<Point> = createRandomPointTree(
-                randomPoint(config.width, config.height),
-                config.treeDepth,
-                config.treeBranches,
-                config.width
-            );
-
-            const flowerTree = new FlowerTree(abcTree, {
-                palette: this.config.beginColorPalette,
-                circleRadius: this.config.circleRadius,
-                circlePeriod: this.config.circlePeriod,
-                circlePeriodVariance: this.config.circlePeriodVariance,
-            });
-            this.trees.push(flowerTree);
+            this.trees.push(this.getFlowerTree(config));
         }
         console.log(`completed setup of Forrester Sim. Has ${this.trees.length} trees`)
+    }
+
+    getFlowerTree(config: ForesterSimConfig): FlowerTree {
+        const abcTree: ABCTree<Point> = createRandomPointTree(
+            randomPoint(config.width, config.height),
+            getSimpleRandomValueFunction(1,config.treeDepth),
+            getSimpleRandomValueFunction(1,config.treeBranches),
+            config.width,
+            config.height
+        );
+
+        return new FlowerTree(abcTree, {
+            palette: this.config.beginColorPalette,
+            circleRadius: this.config.circleRadius,
+            circlePeriod: this.config.circlePeriod,
+            circlePeriodVariance: this.config.circlePeriodVariance,
+            circleRadiusVariance: this.config.circleRadiusVariance,
+            drawsToKeep: this.config.drawsToKeep,
+        }) as FlowerTree;
     }
 
     init() {
@@ -88,13 +99,21 @@ export class ForesterSim implements ISimulation {
     update() {
         this.tick++;
         console.log(`${new Date().toLocaleTimeString()} finished tick ${this.tick}.`);
+        if ( this.config.treeLifetime !== 0 && (this.tick % this.config.treeLifetime) === 0) {
+            this.trees.push(this.getFlowerTree(this.config));
+            this.trees.shift();
+        }
     }
 
     draw(ctx: CanvasRenderingContext2D, time: number) {
-        console.log('sim draw');
+        //if (this.config.clearEveryNFrames > 0 && (this.tick % this.config.clearEveryNFrames === 0)) {
+            ctx.save();
+            ctx.fillStyle = this.config.background;
+            ctx.fillRect(0,0,this.config.width,this.config.height);
+            ctx.restore();
+        //}
         ctx.save();
         this.trees.forEach((tree) => {
-            console.log(`drawing treex`);
             tree.draw(ctx, {x: roundToInt(0), y: roundToInt(0)}, this.imagePattern, time);
         })
         ctx.restore();
@@ -108,7 +127,7 @@ export class ForesterSim implements ISimulation {
         console.log(`starting updateAndDraw at ${callTime}`);
         this.update();
         this.draw(this.drawContext, callTime.valueOf());
-        if ( this.config.numberOfFrames > 0 && this.tick < this.config.numberOfFrames) {
+        if ( this.config.numberOfFrames == 0 || this.tick < this.config.numberOfFrames) {
             requestAnimationFrame(this.updateAndDraw.bind(this));
         } else {
             console.log('&&***************** Done');
@@ -126,8 +145,18 @@ export type FlowerTreeConfig = {
     palette: ColorRGB[],
     circlePeriod: number,   // todo: make changeable?
     circleRadius: number,  // todo: make changeable?
-    circlePeriodVariance: number
+    circlePeriodVariance: number,
+    circleRadiusVariance: number,
+    drawsToKeep: number
 }
+
+export interface FlowerTreeDrawCall {
+    ctx: CanvasRenderingContext2D,
+    offset: Point,
+    pattern: CanvasPattern,
+    time: number,
+}
+
 
 export class FlowerTree implements DrawableTree<Point> {
     readonly draw: (ctx: CanvasRenderingContext2D, offset: Point, pattern: CanvasPattern, time: number) => any;
@@ -137,47 +166,63 @@ export class FlowerTree implements DrawableTree<Point> {
     readonly dynamicRoot: Node<DynamicPoint>;
     readonly palette: ColorRGB[];
 
+    readonly drawCalls: FlowerTreeDrawCall[] = [];
+    readonly config: FlowerTreeConfig;
+
+
+
     constructor(tree: ABCTree<Point>, flowerConfig: FlowerTreeConfig) {
         console.log('creating new Flower tree');
+        this.config = flowerConfig;
         const circlingPointConverter = (point: Point) => {
-            return createCirclingPoint(point, flowerConfig.circlePeriod + Math.floor((0.5 - Math.random()) * flowerConfig.circlePeriodVariance ), flowerConfig.circleRadius);
+            return createCirclingPoint(
+                point,
+                flowerConfig.circlePeriod + Math.floor((0.5 - Math.random()) * flowerConfig.circlePeriodVariance ),
+                flowerConfig.circleRadius + Math.floor((0.5 - Math.random()) * flowerConfig.circleRadiusVariance )
+            );
         }
         this.tree = convertPointTree<DynamicPoint>(tree, circlingPointConverter);
         this.dynamicRoot = this.tree.root;
         this.palette = flowerConfig.palette;
         this.draw = (ctx: CanvasRenderingContext2D, offset: Point, pattern: CanvasPattern, time: number) => {
-            ctx.save();
-            // const grd = ctx.createLinearGradient(0, 0, 170, 0);
-            // grd.addColorStop(0, "blue");
-            // grd.addColorStop(1, "red");
-            // first the dots
-            this.dynamicRoot.walk((node) => {
-                ctx.fillStyle = this.palette[Math.floor(Math.random() * flowerConfig.palette.length)].cssColor;
-                ctx.fillStyle = pattern;
-                //ctx.fillStyle = "#FFFFAA";
-                let circle = new Path2D();
-                const point = node.model.getPoint(time);
-                circle.arc(point.x, point.y, 4, 0, 2 * Math.PI);
-                ctx.fill(circle);
-                //console.log(`drew circle at ${point.x},${point.y}`);
-                return true;
+            this.drawCalls.push({
+                ctx,
+                offset,
+                pattern,
+                time
             });
-            const rootPoint: Point = this.dynamicRoot.model.getPoint(time);
-            ctx.beginPath();
-            ctx.moveTo(rootPoint.x, rootPoint.y);
-            ctx.strokeStyle = pattern;
-            this.dynamicRoot.walk((node) => {
-                if (!node.isRoot()) {
-                    const point: Point = node.model.getPoint(time);
-                    const parentPoint = node.parent.model.getPoint(time);
-                    ctx.moveTo(point.x, point.y);
+            if ( this.drawCalls.length > flowerConfig.drawsToKeep ) {this.drawCalls.shift();}
+            this.drawCalls.forEach((drawCall) => {
+                drawCall.ctx.save();
+                this.dynamicRoot.walk((node) => {
+                    drawCall.ctx.fillStyle = this.palette[Math.floor(Math.random() * flowerConfig.palette.length)].cssColor;
+                    drawCall.ctx.fillStyle = drawCall.pattern;
+                    //drawCall.ctx.fillStyle = "#FFFFAA";
+                    let circle = new Path2D();
+                    const point = node.model.getPoint(drawCall.time);
+                    circle.arc(point.x, point.y, 1, 0, 2 * Math.PI);
+                    drawCall.ctx.fill(circle);
+                    //console.log(`drew circle at ${point.x},${point.y}`);
+                    return true;
+                });
+                const rootPoint: Point = this.dynamicRoot.model.getPoint(drawCall.time);
+                drawCall.ctx.beginPath();
+                drawCall.ctx.moveTo(rootPoint.x, rootPoint.y);
+                drawCall.ctx.strokeStyle = pattern;
+                this.dynamicRoot.walk((node) => {
+                    if (!node.isRoot()) {
+                        const point: Point = node.model.getPoint(drawCall.time);
+                        const parentPoint = node.parent.model.getPoint(drawCall.time);
+                        drawCall.ctx.moveTo(point.x, point.y);
 
-                    ctx.quadraticCurveTo(rootPoint.x, rootPoint.y, parentPoint.x, parentPoint.y);
-                }
-                return true;
-            })
-            ctx.stroke();
-            ctx.restore();
+                        drawCall.ctx.quadraticCurveTo(rootPoint.x, rootPoint.y, parentPoint.x, parentPoint.y);
+                    }
+                    return true;
+                })
+                drawCall.ctx.stroke();
+                drawCall.ctx.restore();
+            });
+
             return;
         }
         console.log('created tree');

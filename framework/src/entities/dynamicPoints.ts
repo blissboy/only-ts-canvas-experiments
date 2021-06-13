@@ -1,9 +1,9 @@
-import {Modifier} from "../changers/types";
+import {TimedModifier} from "../changers/types";
 import {DynamicPoint, Point} from "./types";
 import {getCosWaveModifier, getSinWaveModifier} from "../changers/modifiers";
 import base = Mocha.reporters.base;
 
-export function createDynamicPoint(modifer: Modifier, basePoint: Point): DynamicPoint {
+export function createDynamicPoint(modifer: TimedModifier, basePoint: Point): DynamicPoint {
     return {
         getPoint: (time: number) => {
             const modValue = modifer(time);

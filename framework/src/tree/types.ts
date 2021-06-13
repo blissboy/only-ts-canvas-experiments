@@ -21,6 +21,7 @@ export interface PointTree<Point> extends ABCTree<Point> {
 // }
 
 export function utilAddChildrenToNode<T>(tree: TreeModel, node: Node<T>, creator: Factory<T>, numberToAdd: number): Node<T>[] {
+    console.log(`adding ${numberToAdd} children to node`);
     for (let i=0; i < numberToAdd; i++) {
         node.addChild(tree.parse(creator.create()));
     }
